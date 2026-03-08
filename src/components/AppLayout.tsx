@@ -57,6 +57,19 @@ export function AppLayout() {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
+          {isSuperAdminMode && (
+            <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm">
+                <Shield className="h-4 w-4 text-destructive" />
+                <span className="text-destructive font-medium">
+                  Modo Super Admin — Visualizando: {currentClinic?.name}
+                </span>
+              </div>
+              <Button variant="outline" size="sm" onClick={exitSuperAdminMode} className="text-xs h-7">
+                Sair do modo clínica
+              </Button>
+            </div>
+          )}
           <header className="h-14 flex items-center justify-between border-b border-border px-4 shrink-0 bg-card/50">
             <div className="flex items-center gap-3">
               <SidebarTrigger />
