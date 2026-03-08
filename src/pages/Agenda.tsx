@@ -49,7 +49,7 @@ export default function Agenda() {
   const [detailAppointment, setDetailAppointment] = useState<Appointment | null>(null);
 
   const [form, setForm] = useState({
-    doctor_id: "", patient_id: "", title: "", description: "",
+    doctor_id: "", patient_id: "", procedure_id: "", title: "", description: "",
     appointment_date: new Date(), start_time: "", end_time: "",
     is_recurring: false, recurrence_type: "weekly" as string, recurrence_end_date: null as Date | null,
   });
