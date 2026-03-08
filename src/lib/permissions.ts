@@ -10,14 +10,15 @@ export type Permission =
   | 'reports'
   | 'settings'
   | 'doctors'
-  | 'availability';
+  | 'availability'
+  | 'procedures';
 
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
-  admin: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'settings', 'doctors', 'availability'],
-  manager: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'doctors', 'availability'],
+  admin: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'settings', 'doctors', 'availability', 'procedures'],
+  manager: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'doctors', 'availability', 'procedures'],
   reception: ['dashboard', 'agenda', 'patients'],
   financial: ['dashboard', 'receivables', 'payables', 'cashflow', 'reports'],
-  profissional: ['dashboard', 'agenda', 'patients', 'availability'],
+  profissional: ['dashboard', 'agenda', 'patients', 'availability', 'procedures'],
 };
 
 export function getPermissions(role: string | null): Permission[] {
