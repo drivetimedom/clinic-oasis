@@ -8,6 +8,7 @@ import {
   Stethoscope,
   Clock,
   Settings,
+  Syringe,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -43,6 +44,12 @@ const financialItems: MenuItem[] = [
 
 const clinicItems: MenuItem[] = [
   { title: "Pacientes", url: "/patients", icon: Users, permission: "patients" },
+];
+
+const procedureItems: MenuItem[] = [
+  { title: "Categorias", url: "/procedures/categories", icon: Syringe, permission: "procedures" },
+  { title: "Procedimentos", url: "/procedures", icon: Syringe, permission: "procedures" },
+  { title: "Protocolos", url: "/procedures/protocols", icon: Syringe, permission: "procedures" },
 ];
 
 export function AppSidebar() {
@@ -114,6 +121,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         {renderGroup("Agendamento", agendaItems)}
+        {renderGroup("Procedimentos", procedureItems)}
         {renderGroup("Financeiro", financialItems)}
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>

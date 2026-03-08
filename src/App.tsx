@@ -22,6 +22,9 @@ import Availability from "@/pages/Availability";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 import ResetPassword from "@/pages/ResetPassword";
+import ProcedureCategories from "@/pages/ProcedureCategories";
+import ProceduresPage from "@/pages/Procedures";
+import Protocols from "@/pages/Protocols";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -122,6 +125,9 @@ const App = () => (
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/doctors" element={<Doctors />} />
               <Route path="/availability" element={<Availability />} />
+              <Route path="/procedures/categories" element={<ProcedureCategories />} />
+              <Route path="/procedures" element={<ProceduresPage />} />
+              <Route path="/procedures/protocols" element={<Protocols />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
