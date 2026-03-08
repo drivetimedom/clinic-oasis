@@ -136,6 +136,7 @@ export default function Protocols() {
     setDescription(proto.description || "");
     setSteps(proto.steps || "");
     setClinicalNotes(proto.clinical_notes || "");
+    setMaterials(proto.materials || "");
     setProcedureId(proto.procedure_id);
     setOpen(true);
   };
