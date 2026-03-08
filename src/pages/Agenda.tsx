@@ -24,6 +24,7 @@ import { Tables } from "@/integrations/supabase/types";
 type Appointment = Tables<"appointments"> & {
   doctors?: { name: string; color: string } | null;
   patients?: { name: string } | null;
+  procedures?: { name: string } | null;
 };
 
 const STATUS_LABELS: Record<string, string> = {
