@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useClinic } from "@/contexts/ClinicContext";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,29 +8,27 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { format, eachDayOfInterval, subDays } from "date-fns";
 
 export default function CashFlow() {
-  const { user } = useAuth();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic!.id;
   const today = new Date();
 
   const { data: receivables = [] } = useQuery({
-    queryKey: ["receivables"],
+    queryKey: ["receivables", clinicId],
     queryFn: async () => {
-      const { data } = await supabase.from("receivables").select("*").eq("user_id", user!.id);
+      const { data } = await supabase.from("receivables").select("*").eq("clinic_id", clinicId);
       return data || [];
     },
-    enabled: !!user,
   });
 
   const { data: payables = [] } = useQuery({
-    queryKey: ["payables"],
+    queryKey: ["payables", clinicId],
     queryFn: async () => {
-      const { data } = await supabase.from("payables").select("*").eq("user_id", user!.id);
+      const { data } = await supabase.from("payables").select("*").eq("clinic_id", clinicId);
       return data || [];
     },
-    enabled: !!user,
   });
 
   const days = eachDayOfInterval({ start: subDays(today, 29), end: today });
-
   const chartData = days.map((day) => {
     const dateStr = format(day, "yyyy-MM-dd");
     const entradas = receivables.filter(r => r.payment_date === dateStr).reduce((s, r) => s + Number(r.amount), 0);
@@ -38,7 +36,6 @@ export default function CashFlow() {
     return { date: format(day, "dd/MM"), entradas, saidas, saldo: entradas - saidas };
   });
 
-  // Daily table with all transactions
   const allTransactions = [
     ...receivables.filter(r => r.status === "paid").map(r => ({ date: r.payment_date!, description: r.description, type: "entrada" as const, amount: Number(r.amount) })),
     ...payables.filter(p => p.status === "paid").map(p => ({ date: p.payment_date!, description: p.description, type: "saida" as const, amount: Number(p.amount) })),
@@ -47,11 +44,8 @@ export default function CashFlow() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Fluxo de Caixa</h1>
-
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Fluxo Diário (30 dias)</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Fluxo Diário (30 dias)</CardTitle></CardHeader>
         <CardContent>
           <div className="h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -68,40 +62,22 @@ export default function CashFlow() {
           </div>
         </CardContent>
       </Card>
-
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Movimentações Recentes</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Movimentações Recentes</CardTitle></CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-              </TableRow>
-            </TableHeader>
+            <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Descrição</TableHead><TableHead>Tipo</TableHead><TableHead className="text-right">Valor</TableHead></TableRow></TableHeader>
             <TableBody>
-              {allTransactions.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhuma movimentação encontrada</TableCell></TableRow>
-              ) : (
-                allTransactions.map((t, i) => (
+              {allTransactions.length === 0
+                ? <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhuma movimentação encontrada</TableCell></TableRow>
+                : allTransactions.map((t, i) => (
                   <TableRow key={i}>
                     <TableCell>{formatDate(t.date)}</TableCell>
                     <TableCell>{t.description}</TableCell>
-                    <TableCell>
-                      <span className={t.type === "entrada" ? "text-success" : "text-destructive"}>
-                        {t.type === "entrada" ? "Entrada" : "Saída"}
-                      </span>
-                    </TableCell>
-                    <TableCell className={`text-right font-medium ${t.type === "entrada" ? "text-success" : "text-destructive"}`}>
-                      {t.type === "entrada" ? "+" : "-"}{formatCurrency(t.amount)}
-                    </TableCell>
+                    <TableCell><span className={t.type === "entrada" ? "text-success" : "text-destructive"}>{t.type === "entrada" ? "Entrada" : "Saída"}</span></TableCell>
+                    <TableCell className={`text-right font-medium ${t.type === "entrada" ? "text-success" : "text-destructive"}`}>{t.type === "entrada" ? "+" : "-"}{formatCurrency(t.amount)}</TableCell>
                   </TableRow>
-                ))
-              )}
+                ))}
             </TableBody>
           </Table>
         </CardContent>

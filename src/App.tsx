@@ -2,10 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { ClinicProvider, useClinic } from "@/contexts/ClinicContext";
 import { AppLayout } from "@/components/AppLayout";
 import Auth from "@/pages/Auth";
+import ClinicSetup from "@/pages/ClinicSetup";
 import Dashboard from "@/pages/Dashboard";
 import Receivables from "@/pages/Receivables";
 import Payables from "@/pages/Payables";
@@ -15,23 +17,35 @@ import PatientProfile from "@/pages/PatientProfile";
 import Agenda from "@/pages/Agenda";
 import Doctors from "@/pages/Doctors";
 import Availability from "@/pages/Availability";
+import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoutes() {
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-8 w-8 rounded-lg bg-primary animate-pulse" />
+    </div>
+  );
+}
+
+function ProtectedApp() {
   const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="h-8 w-8 rounded-lg bg-primary animate-pulse" />
-      </div>
-    );
-  }
-
+  if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
+  return (
+    <ClinicProvider>
+      <Outlet />
+    </ClinicProvider>
+  );
+}
 
+function ClinicGuard() {
+  const { currentClinic, isLoading, clinics } = useClinic();
+  if (isLoading) return <LoadingScreen />;
+  if (clinics.length === 0) return <Navigate to="/clinic-setup" replace />;
+  if (!currentClinic) return <LoadingScreen />;
   return <AppLayout />;
 }
 
@@ -50,16 +64,20 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<AuthRoute />} />
-          <Route element={<ProtectedRoutes />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/receivables" element={<Receivables />} />
-            <Route path="/payables" element={<Payables />} />
-            <Route path="/cash-flow" element={<CashFlow />} />
-            <Route path="/patients" element={<Patients />} />
-            <Route path="/patients/:id" element={<PatientProfile />} />
-            <Route path="/agenda" element={<Agenda />} />
-            <Route path="/doctors" element={<Doctors />} />
-            <Route path="/availability" element={<Availability />} />
+          <Route element={<ProtectedApp />}>
+            <Route path="/clinic-setup" element={<ClinicSetup />} />
+            <Route element={<ClinicGuard />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/receivables" element={<Receivables />} />
+              <Route path="/payables" element={<Payables />} />
+              <Route path="/cash-flow" element={<CashFlow />} />
+              <Route path="/patients" element={<Patients />} />
+              <Route path="/patients/:id" element={<PatientProfile />} />
+              <Route path="/agenda" element={<Agenda />} />
+              <Route path="/doctors" element={<Doctors />} />
+              <Route path="/availability" element={<Availability />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -4,10 +4,10 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   BarChart3,
-  LogOut,
   CalendarDays,
   Stethoscope,
   Clock,
+  Settings,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -24,58 +24,61 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useClinic } from "@/contexts/ClinicContext";
+import { hasPermission, type Permission } from "@/lib/permissions";
 
-const financialItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Contas a Receber", url: "/receivables", icon: ArrowDownCircle },
-  { title: "Contas a Pagar", url: "/payables", icon: ArrowUpCircle },
-  { title: "Fluxo de Caixa", url: "/cash-flow", icon: BarChart3 },
+type MenuItem = { title: string; url: string; icon: any; permission: Permission };
+
+const agendaItems: MenuItem[] = [
+  { title: "Agenda", url: "/agenda", icon: CalendarDays, permission: "agenda" },
+  { title: "Doutoras", url: "/doctors", icon: Stethoscope, permission: "doctors" },
+  { title: "Disponibilidade", url: "/availability", icon: Clock, permission: "availability" },
 ];
 
-const agendaItems = [
-  { title: "Agenda", url: "/agenda", icon: CalendarDays },
-  { title: "Doutoras", url: "/doctors", icon: Stethoscope },
-  { title: "Disponibilidade", url: "/availability", icon: Clock },
+const financialItems: MenuItem[] = [
+  { title: "Contas a Receber", url: "/receivables", icon: ArrowDownCircle, permission: "receivables" },
+  { title: "Contas a Pagar", url: "/payables", icon: ArrowUpCircle, permission: "payables" },
+  { title: "Fluxo de Caixa", url: "/cash-flow", icon: BarChart3, permission: "cashflow" },
 ];
 
-const clinicItems = [
-  { title: "Pacientes", url: "/patients", icon: Users },
+const clinicItems: MenuItem[] = [
+  { title: "Pacientes", url: "/patients", icon: Users, permission: "patients" },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const navigate = useNavigate();
+  const { role } = useClinic();
 
   const isActive = (path: string) => location.pathname === path;
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
+  const filterByPermission = (items: MenuItem[]) =>
+    items.filter((item) => hasPermission(role, item.permission));
 
-  const renderGroup = (label: string, items: typeof financialItems) => (
-    <SidebarGroup>
-      <SidebarGroupLabel>{label}</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                <NavLink to={item.url} end activeClassName="bg-sidebar-accent text-primary font-medium">
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.title}</span>
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
+  const renderGroup = (label: string, items: MenuItem[]) => {
+    const visible = filterByPermission(items);
+    if (visible.length === 0) return null;
+    return (
+      <SidebarGroup key={label}>
+        <SidebarGroupLabel>{label}</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {visible.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                  <NavLink to={item.url} end activeClassName="bg-sidebar-accent text-primary font-medium">
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -94,6 +97,22 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {hasPermission(role, "dashboard") && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/")} tooltip="Dashboard">
+                    <NavLink to="/" end activeClassName="bg-sidebar-accent text-primary font-medium">
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span>Dashboard</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         {renderGroup("Agendamento", agendaItems)}
         {renderGroup("Financeiro", financialItems)}
         {renderGroup("Clínica", clinicItems)}
@@ -101,12 +120,16 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-2">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} tooltip="Sair">
-              <LogOut className="h-4 w-4" />
-              <span>Sair</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {hasPermission(role, "settings") && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Configurações">
+                <NavLink to="/settings" end activeClassName="bg-sidebar-accent text-primary font-medium">
+                  <Settings className="h-4 w-4" />
+                  <span>Configurações</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
