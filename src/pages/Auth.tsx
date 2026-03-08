@@ -11,6 +11,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -18,18 +19,43 @@ export default function Auth() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate("/");
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } },
+        });
         if (error) throw error;
         toast({ title: "Conta criada!" });
-        navigate("/");
       }
+      navigate("/");
+    } catch (error: any) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemo = async () => {
+    setLoading(true);
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: "demo@hofcircle.com",
+        password: "demo123456",
+      });
+      if (signInError) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: "demo@hofcircle.com",
+          password: "demo123456",
+          options: { data: { full_name: "Usuário Demo" } },
+        });
+        if (signUpError) throw signUpError;
+      }
+      navigate("/");
     } catch (error: any) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } finally {
@@ -49,35 +75,7 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           <div className="mb-6">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full border-primary/30 hover:bg-primary/10 hover:text-primary"
-              disabled={loading}
-              onClick={async () => {
-                setLoading(true);
-                try {
-                  // Try to sign in first
-                  const { error: signInError } = await supabase.auth.signInWithPassword({
-                    email: "demo@hofcircle.com",
-                    password: "demo123456",
-                  });
-                  if (signInError) {
-                    // If user doesn't exist, create it
-                    const { error: signUpError } = await supabase.auth.signUp({
-                      email: "demo@hofcircle.com",
-                      password: "demo123456",
-                    });
-                    if (signUpError) throw signUpError;
-                  }
-                  navigate("/");
-                } catch (error: any) {
-                  toast({ title: "Erro", description: error.message, variant: "destructive" });
-                } finally {
-                  setLoading(false);
-                }
-              }}
-            >
+            <Button type="button" variant="outline" className="w-full border-primary/30 hover:bg-primary/10 hover:text-primary" disabled={loading} onClick={handleDemo}>
               🚀 Entrar com conta demo
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-2">demo@hofcircle.com / demo123456</p>
@@ -89,6 +87,12 @@ export default function Auth() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nome Completo</Label>
+                <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Seu nome" />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="seu@email.com" />

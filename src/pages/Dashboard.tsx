@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useClinic } from "@/contexts/ClinicContext";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowDownCircle, ArrowUpCircle, DollarSign, AlertTriangle } from "lucide-react";
@@ -8,24 +8,23 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format, subDays, isAfter, isBefore, addDays } from "date-fns";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic!.id;
 
   const { data: receivables = [] } = useQuery({
-    queryKey: ["receivables"],
+    queryKey: ["receivables", clinicId],
     queryFn: async () => {
-      const { data } = await supabase.from("receivables").select("*").eq("user_id", user!.id);
+      const { data } = await supabase.from("receivables").select("*").eq("clinic_id", clinicId);
       return data || [];
     },
-    enabled: !!user,
   });
 
   const { data: payables = [] } = useQuery({
-    queryKey: ["payables"],
+    queryKey: ["payables", clinicId],
     queryFn: async () => {
-      const { data } = await supabase.from("payables").select("*").eq("user_id", user!.id);
+      const { data } = await supabase.from("payables").select("*").eq("clinic_id", clinicId);
       return data || [];
     },
-    enabled: !!user,
   });
 
   const totalReceivable = receivables.filter(r => r.status === "pending").reduce((s, r) => s + Number(r.amount), 0);
@@ -40,7 +39,6 @@ export default function Dashboard() {
     ...payables.filter(p => p.status === "pending" && isAfter(new Date(p.due_date), today) && isBefore(new Date(p.due_date), addDays(today, 7))),
   ];
 
-  // Chart data: last 30 days
   const chartData = Array.from({ length: 30 }, (_, i) => {
     const date = subDays(today, 29 - i);
     const dateStr = format(date, "yyyy-MM-dd");
@@ -58,8 +56,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard Financeiro</h1>
-
+      <h1 className="text-2xl font-bold">Dashboard</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((m) => (
           <Card key={m.title}>
@@ -67,17 +64,12 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-muted-foreground">{m.title}</CardTitle>
               <m.icon className={`h-5 w-5 ${m.color}`} />
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{m.value}</p>
-            </CardContent>
+            <CardContent><p className="text-2xl font-bold">{m.value}</p></CardContent>
           </Card>
         ))}
       </div>
-
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Evolução Financeira (30 dias)</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Evolução Financeira (30 dias)</CardTitle></CardHeader>
         <CardContent>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
