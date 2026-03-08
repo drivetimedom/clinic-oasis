@@ -38,6 +38,7 @@ import {
   Shield,
   ArrowLeft,
   Activity,
+  Palette,
 } from "lucide-react";
 
 function SuperAdminSidebarContent() {
