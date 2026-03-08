@@ -36,6 +36,7 @@ export default function ClinicSetup() {
       if (error) throw error;
       toast({ title: "Clínica criada com sucesso!" });
       await refetch();
+      navigate("/", { replace: true });
     } catch (err: any) {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
     } finally {
