@@ -77,6 +77,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<AuthRoute />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route element={<ProtectedApp />}>
             <Route path="/clinic-setup" element={<ClinicSetup />} />
             {/* Super Admin Routes */}
