@@ -102,6 +102,14 @@ export function AppLayout() {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuLabel className="text-xs text-muted-foreground">{user?.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {isSuperAdmin && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate("/admin")}>
+                        <Shield className="h-4 w-4 mr-2" />Painel Admin
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="h-4 w-4 mr-2" />Configurações
                   </DropdownMenuItem>
