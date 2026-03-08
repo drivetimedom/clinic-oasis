@@ -21,6 +21,7 @@ import Doctors from "@/pages/Doctors";
 import Availability from "@/pages/Availability";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
+import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
