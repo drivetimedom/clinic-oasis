@@ -56,8 +56,13 @@ function SuperAdminGuard() {
 
 function ClinicGuard() {
   const { currentClinic, isLoading, clinics } = useClinic();
-  if (isLoading) return <LoadingScreen />;
-  if (clinics.length === 0) return <Navigate to="/clinic-setup" replace />;
+  const { isSuperAdmin, isLoading: saLoading } = useSuperAdmin();
+  if (isLoading || saLoading) return <LoadingScreen />;
+  if (clinics.length === 0) {
+    // Super admins don't need clinics, redirect to admin panel
+    if (isSuperAdmin) return <Navigate to="/admin" replace />;
+    return <Navigate to="/clinic-setup" replace />;
+  }
   if (!currentClinic) return <LoadingScreen />;
   return <AppLayout />;
 }
