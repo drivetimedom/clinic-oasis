@@ -169,6 +169,10 @@ const App = () => (
               <Route path="/crm/return" element={<CrmReturn />} />
               <Route path="/crm/inactive" element={<CrmInactive />} />
               <Route path="/crm/history" element={<CrmHistory />} />
+              <Route path="/planning/costs" element={<ClinicCosts />} />
+              <Route path="/planning/pricing" element={<ProcedurePricing />} />
+              <Route path="/planning/goals" element={<PlanningGoals />} />
+              <Route path="/planning/acquisition" element={<AcquisitionMetrics />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
