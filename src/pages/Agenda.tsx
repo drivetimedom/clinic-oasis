@@ -216,6 +216,12 @@ export default function Agenda() {
                     <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2"><Label>Procedimento</Label>
+                  <Select value={form.procedure_id} onValueChange={(v) => setForm({ ...form, procedure_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
+                    <SelectContent>{clinicProcedures.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2"><Label>Título *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="Ex: Consulta, Limpeza de pele..." /></div>
                 <div className="space-y-2"><Label>Data *</Label>
                   <Popover>
