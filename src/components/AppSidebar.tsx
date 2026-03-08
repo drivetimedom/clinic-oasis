@@ -46,6 +46,12 @@ const clinicItems: MenuItem[] = [
   { title: "Pacientes", url: "/patients", icon: Users, permission: "patients" },
 ];
 
+const procedureItems: MenuItem[] = [
+  { title: "Categorias", url: "/procedures/categories", icon: Syringe, permission: "procedures" },
+  { title: "Procedimentos", url: "/procedures", icon: Syringe, permission: "procedures" },
+  { title: "Protocolos", url: "/procedures/protocols", icon: Syringe, permission: "procedures" },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
