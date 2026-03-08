@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -188,6 +218,8 @@ export type Database = {
       clinics: {
         Row: {
           address: string | null
+          city: string | null
+          cnpj: string | null
           created_at: string
           email: string | null
           id: string
@@ -195,11 +227,14 @@ export type Database = {
           name: string
           phone: string | null
           slug: string | null
+          state: string | null
           status: string
           updated_at: string
         }
         Insert: {
           address?: string | null
+          city?: string | null
+          cnpj?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -207,11 +242,14 @@ export type Database = {
           name: string
           phone?: string | null
           slug?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
           address?: string | null
+          city?: string | null
+          cnpj?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -219,6 +257,7 @@ export type Database = {
           name?: string
           phone?: string | null
           slug?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
         }
@@ -532,6 +571,15 @@ export type Database = {
       get_clinic_role: {
         Args: { _clinic_id: string; _user_id: string }
         Returns: string
+      }
+      get_super_admin_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          user_id: string
+        }[]
       }
       has_clinic_role: {
         Args: { _clinic_id: string; _roles: string[]; _user_id: string }

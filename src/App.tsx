@@ -25,7 +25,7 @@ import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
-
+import ActivityLog from "@/pages/admin/ActivityLog";
 const queryClient = new QueryClient();
 
 function LoadingScreen() {
@@ -54,16 +54,35 @@ function SuperAdminGuard() {
   return <SuperAdminLayout />;
 }
 
+function ClinicBlockedScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="text-center space-y-4 max-w-md">
+        <div className="mx-auto h-16 w-16 rounded-2xl bg-destructive/10 flex items-center justify-center">
+          <span className="text-destructive text-2xl">⚠</span>
+        </div>
+        <h1 className="text-2xl font-bold">Clínica Suspensa</h1>
+        <p className="text-muted-foreground">
+          O acesso a esta clínica foi suspenso. Entre em contato com o suporte da plataforma para mais informações.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function ClinicGuard() {
-  const { currentClinic, isLoading, clinics } = useClinic();
+  const { currentClinic, isLoading, clinics, isSuperAdminMode } = useClinic();
   const { isSuperAdmin, isLoading: saLoading } = useSuperAdmin();
   if (isLoading || saLoading) return <LoadingScreen />;
   if (clinics.length === 0) {
-    // Super admins don't need clinics, redirect to admin panel
     if (isSuperAdmin) return <Navigate to="/admin" replace />;
     return <Navigate to="/clinic-setup" replace />;
   }
   if (!currentClinic) return <LoadingScreen />;
+  // Block access if clinic is suspended/blocked (unless super admin mode)
+  if (currentClinic.status !== "active" && !isSuperAdminMode) {
+    return <ClinicBlockedScreen />;
+  }
   return <AppLayout />;
 }
 
@@ -90,6 +109,7 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/clinics" element={<AdminClinics />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/activity" element={<ActivityLog />} />
             </Route>
             {/* Clinic Routes */}
             <Route element={<ClinicGuard />}>

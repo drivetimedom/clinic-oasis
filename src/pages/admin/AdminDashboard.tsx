@@ -2,12 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Building2, Users, Stethoscope, DollarSign, Activity, Ban, UserCheck } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area,
 } from "recharts";
-import { format, subMonths, startOfMonth, parseISO } from "date-fns";
+import { format, subMonths, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 function buildMonthlyData(items: { created_at: string }[], months = 6) {
@@ -25,6 +26,16 @@ function buildMonthlyData(items: { created_at: string }[], months = 6) {
     count,
   }));
 }
+
+const chartTooltipStyle = {
+  contentStyle: {
+    backgroundColor: "hsl(0 0% 10%)",
+    border: "1px solid hsl(0 0% 18%)",
+    borderRadius: "8px",
+    color: "hsl(0 0% 95%)",
+    fontSize: 12,
+  },
+};
 
 export default function AdminDashboard() {
   const { data: clinics = [] } = useQuery({
@@ -51,11 +62,22 @@ export default function AdminDashboard() {
     },
   });
 
-  const { data: totalRevenue = 0 } = useQuery({
-    queryKey: ["admin_total_revenue"],
+  const { data: revenueByClinic = [] } = useQuery({
+    queryKey: ["admin_revenue_by_clinic"],
     queryFn: async () => {
-      const { data } = await supabase.from("receivables").select("amount").eq("status", "paid");
-      return (data || []).reduce((s, r) => s + Number(r.amount), 0);
+      const { data } = await supabase
+        .from("receivables")
+        .select("amount, clinic_id, clinics(name)")
+        .eq("status", "paid");
+      if (!data) return [];
+      const map: Record<string, { name: string; total: number }> = {};
+      data.forEach((r: any) => {
+        const cid = r.clinic_id || "unknown";
+        const cname = r.clinics?.name || "Sem clínica";
+        if (!map[cid]) map[cid] = { name: cname, total: 0 };
+        map[cid].total += Number(r.amount);
+      });
+      return Object.values(map).sort((a, b) => b.total - a.total);
     },
   });
 
@@ -69,7 +91,8 @@ export default function AdminDashboard() {
 
   const totalClinics = clinics.length;
   const activeClinics = clinics.filter((c: any) => c.status === "active").length;
-  const blockedClinics = clinics.filter((c: any) => c.status === "blocked").length;
+  const blockedClinics = totalClinics - activeClinics;
+  const totalRevenue = revenueByClinic.reduce((s, r) => s + r.total, 0);
 
   const clinicsByMonth = buildMonthlyData(clinics);
   const appointmentsByMonth = buildMonthlyData(appointments);
@@ -78,21 +101,11 @@ export default function AdminDashboard() {
   const metrics = [
     { title: "Total de Clínicas", value: String(totalClinics), icon: Building2, color: "text-primary" },
     { title: "Clínicas Ativas", value: String(activeClinics), icon: Activity, color: "text-primary" },
-    { title: "Clínicas Bloqueadas", value: String(blockedClinics), icon: Ban, color: "text-destructive" },
+    { title: "Bloqueadas/Suspensas", value: String(blockedClinics), icon: Ban, color: "text-destructive" },
     { title: "Total de Pacientes", value: String(patients.length), icon: Users, color: "text-[hsl(var(--info))]" },
     { title: "Total de Atendimentos", value: String(appointments.length), icon: Stethoscope, color: "text-[hsl(var(--warning))]" },
     { title: "Total de Usuários", value: String(memberCount), icon: UserCheck, color: "text-primary" },
   ];
-
-  const chartTooltipStyle = {
-    contentStyle: {
-      backgroundColor: "hsl(0 0% 10%)",
-      border: "1px solid hsl(0 0% 18%)",
-      borderRadius: "8px",
-      color: "hsl(0 0% 95%)",
-      fontSize: 12,
-    },
-  };
 
   return (
     <div className="space-y-6">
@@ -118,9 +131,7 @@ export default function AdminDashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Novas Clínicas por Mês</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-sm">Novas Clínicas por Mês</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={clinicsByMonth}>
@@ -135,9 +146,7 @@ export default function AdminDashboard() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Atendimentos por Mês</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-sm">Atendimentos por Mês</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={appointmentsByMonth}>
@@ -152,9 +161,7 @@ export default function AdminDashboard() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Crescimento de Pacientes</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-sm">Crescimento de Pacientes</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={patientsByMonth}>
@@ -169,28 +176,44 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Recent clinics */}
+      {/* Revenue per clinic */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Clínicas Recentes</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-primary" />
+            Faturamento por Clínica
+            <span className="text-sm font-normal text-muted-foreground ml-2">
+              Total: {formatCurrency(totalRevenue)}
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {clinics.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhuma clínica cadastrada.</p>
+          {revenueByClinic.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Nenhum faturamento registrado.</p>
           ) : (
-            <div className="space-y-2">
-              {clinics.slice(0, 5).map((c: any) => (
-                <div key={c.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                  <div className="flex items-center gap-3">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-sm">{c.name}</span>
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${c.status === 'active' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
-                    {c.status === 'active' ? 'Ativa' : 'Bloqueada'}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Clínica</TableHead>
+                  <TableHead className="text-right">Faturamento</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {revenueByClinic.map((r, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        {r.name}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold text-primary">
+                      {formatCurrency(r.total)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

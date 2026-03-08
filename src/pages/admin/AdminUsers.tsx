@@ -1,114 +1,73 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Search, UserPlus, Trash2, Building2, Users } from "lucide-react";
+import { logActivity } from "@/lib/activityLog";
+import { Shield, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-const ROLE_LABELS: Record<string, string> = {
-  admin: "Administrador",
-  manager: "Gestor",
-  reception: "Recepção",
-  financial: "Financeiro",
-  profissional: "Profissional",
+type SuperAdminUser = {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  created_at: string;
 };
 
 export default function AdminUsers() {
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
-  const [addOpen, setAddOpen] = useState(false);
-  const [selectedClinic, setSelectedClinic] = useState("");
-  const [newUserEmail, setNewUserEmail] = useState("");
-  const [newUserRole, setNewUserRole] = useState("reception");
 
-  const { data: clinics = [] } = useQuery({
-    queryKey: ["admin_clinics_list"],
+  const { data: admins = [], isLoading } = useQuery({
+    queryKey: ["super_admin_users"],
     queryFn: async () => {
-      const { data } = await supabase.from("clinics").select("id, name").order("name");
-      return data || [];
-    },
-  });
-
-  const { data: members = [], isLoading } = useQuery({
-    queryKey: ["admin_all_members"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("clinic_members")
-        .select("*, clinics(name), profiles(full_name)")
-        .order("created_at", { ascending: false });
-      return data || [];
-    },
-  });
-
-  const updateRoleMutation = useMutation({
-    mutationFn: async ({ id, role }: { id: string; role: string }) => {
-      const { error } = await supabase.from("clinic_members").update({ role: role as any }).eq("id", id);
+      const { data, error } = await supabase.rpc("get_super_admin_users" as any);
       if (error) throw error;
+      return (data || []) as SuperAdminUser[];
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin_all_members"] });
-      toast({ title: "Papel atualizado!" });
-    },
-    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const removeMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("clinic_members").delete().eq("id", id);
+    mutationFn: async (userId: string) => {
+      // Protection: ensure at least one super admin remains
+      if (admins.length <= 1) {
+        throw new Error("Não é possível remover o único super admin da plataforma.");
+      }
+      if (userId === currentUser?.id) {
+        throw new Error("Você não pode remover a si mesmo como super admin.");
+      }
+      const { error } = await supabase.from("super_admins").delete().eq("user_id", userId);
       if (error) throw error;
+      const admin = admins.find((a) => a.user_id === userId);
+      await logActivity("Super admin removido", `Usuário "${admin?.email}" foi removido como super admin`, "super_admin", userId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin_all_members"] });
-      toast({ title: "Membro removido!" });
+      queryClient.invalidateQueries({ queryKey: ["super_admin_users"] });
+      toast({ title: "Super admin removido!" });
     },
     onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
-  });
-
-  const addMemberMutation = useMutation({
-    mutationFn: async () => {
-      // Look up user by email in profiles (we can't query auth.users from client)
-      // For now, we search profiles
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .limit(100);
-
-      // We need to find the user - since we can't search by email in profiles,
-      // we'll need a different approach. Let's use a workaround.
-      toast({
-        title: "Funcionalidade limitada",
-        description: "Para adicionar um membro, o usuário precisa primeiro criar uma conta no sistema. Depois, use o ID do usuário para associá-lo à clínica.",
-      });
-    },
-  });
-
-  const filtered = members.filter((m: any) => {
-    const name = (m.profiles as any)?.full_name || "";
-    const clinicName = (m.clinics as any)?.name || "";
-    const term = search.toLowerCase();
-    return name.toLowerCase().includes(term) || clinicName.toLowerCase().includes(term) || m.role.toLowerCase().includes(term);
   });
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Gestão de Usuários</h1>
-          <p className="text-muted-foreground text-sm">{members.length} usuários em todas as clínicas</p>
-        </div>
-      </div>
-
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar por nome, clínica ou papel..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+      <div>
+        <h1 className="text-2xl font-bold">Usuários da Plataforma</h1>
+        <p className="text-muted-foreground text-sm">{admins.length} super admin(s) cadastrado(s)</p>
       </div>
 
       <Card>
@@ -117,51 +76,61 @@ export default function AdminUsers() {
             <TableHeader>
               <TableRow>
                 <TableHead>Usuário</TableHead>
-                <TableHead>Clínica</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Papel</TableHead>
                 <TableHead>Desde</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((m: any) => (
-                <TableRow key={m.id}>
+              {admins.map((a) => (
+                <TableRow key={a.user_id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      {(m.profiles as any)?.full_name || m.user_id.slice(0, 8) + "..."}
+                      <Shield className="h-4 w-4 text-destructive" />
+                      {a.full_name || "Sem nome"}
                     </div>
                   </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{a.email}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-sm">{(m.clinics as any)?.name || "—"}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Select value={m.role} onValueChange={(v) => updateRoleMutation.mutate({ id: m.id, role: v })}>
-                      <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(ROLE_LABELS).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>{label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Badge variant="destructive" className="text-xs">Super Admin</Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {new Date(m.created_at).toLocaleDateString("pt-BR")}
+                    {new Date(a.created_at).toLocaleDateString("pt-BR")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => removeMutation.mutate(m.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    {a.user_id === currentUser?.id ? (
+                      <Badge variant="outline" className="text-xs">Você</Badge>
+                    ) : (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" disabled={admins.length <= 1}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Remover Super Admin</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja remover "{a.email}" como super admin? Esta ação pode ser revertida adicionando novamente.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => removeMutation.mutate(a.user_id)}>
+                              Remover
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
-              {filtered.length === 0 && (
+              {admins.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    {isLoading ? "Carregando..." : "Nenhum usuário encontrado."}
+                    {isLoading ? "Carregando..." : "Nenhum super admin encontrado."}
                   </TableCell>
                 </TableRow>
               )}
