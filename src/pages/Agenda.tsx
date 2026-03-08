@@ -336,6 +336,7 @@ export default function Agenda() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Doutora</span><span>{detailAppointment.doctors?.name}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Paciente</span><span>{detailAppointment.patients?.name || "—"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Procedimento</span><span>{(detailAppointment as any).procedures?.name || "—"}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span>{format(new Date(detailAppointment.appointment_date + "T12:00:00"), "dd/MM/yyyy")}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span>{detailAppointment.start_time.slice(0, 5)} – {detailAppointment.end_time.slice(0, 5)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge className={STATUS_COLORS[detailAppointment.status]}>{STATUS_LABELS[detailAppointment.status]}</Badge></div>
