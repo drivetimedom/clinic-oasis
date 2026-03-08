@@ -146,6 +146,7 @@ export function AppSidebar() {
         {renderGroup("Procedimentos", procedureItems)}
         {renderGroup("Estoque", stockItems)}
         {renderGroup("Financeiro", financialItems)}
+        {renderGroup("Termos e Consentimentos", consentItems)}
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>
 
