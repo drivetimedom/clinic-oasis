@@ -4,8 +4,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { ClinicProvider, useClinic } from "@/contexts/ClinicContext";
 import { AppLayout } from "@/components/AppLayout";
+import { SuperAdminLayout } from "@/components/SuperAdminLayout";
 import Auth from "@/pages/Auth";
 import ClinicSetup from "@/pages/ClinicSetup";
 import Dashboard from "@/pages/Dashboard";
@@ -19,6 +21,9 @@ import Doctors from "@/pages/Doctors";
 import Availability from "@/pages/Availability";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminClinics from "@/pages/admin/AdminClinics";
+import AdminUsers from "@/pages/admin/AdminUsers";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +44,13 @@ function ProtectedApp() {
       <Outlet />
     </ClinicProvider>
   );
+}
+
+function SuperAdminGuard() {
+  const { isSuperAdmin, isLoading } = useSuperAdmin();
+  if (isLoading) return <LoadingScreen />;
+  if (!isSuperAdmin) return <Navigate to="/" replace />;
+  return <SuperAdminLayout />;
 }
 
 function ClinicGuard() {
@@ -66,6 +78,13 @@ const App = () => (
           <Route path="/auth" element={<AuthRoute />} />
           <Route element={<ProtectedApp />}>
             <Route path="/clinic-setup" element={<ClinicSetup />} />
+            {/* Super Admin Routes */}
+            <Route element={<SuperAdminGuard />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/clinics" element={<AdminClinics />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+            </Route>
+            {/* Clinic Routes */}
             <Route element={<ClinicGuard />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/receivables" element={<Receivables />} />

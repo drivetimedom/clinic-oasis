@@ -1,4 +1,4 @@
-export type AppRole = 'admin' | 'manager' | 'reception' | 'financial';
+export type AppRole = 'admin' | 'manager' | 'reception' | 'financial' | 'profissional';
 
 export type Permission =
   | 'dashboard'
@@ -17,6 +17,7 @@ const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
   manager: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'doctors', 'availability'],
   reception: ['dashboard', 'agenda', 'patients'],
   financial: ['dashboard', 'receivables', 'payables', 'cashflow', 'reports'],
+  profissional: ['dashboard', 'agenda', 'patients', 'availability'],
 };
 
 export function getPermissions(role: string | null): Permission[] {
@@ -33,4 +34,5 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   manager: 'Gestor',
   reception: 'Recepção',
   financial: 'Financeiro',
+  profissional: 'Profissional',
 };
