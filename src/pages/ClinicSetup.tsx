@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClinic } from "@/contexts/ClinicContext";
+import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,14 +12,20 @@ import { Building2 } from "lucide-react";
 
 export default function ClinicSetup() {
   const { refetch, clinics, isLoading } = useClinic();
+  const { isSuperAdmin, isLoading: saLoading } = useSuperAdmin();
   const navigate = useNavigate();
 
-  // Redirect if user already has clinics
+  // Redirect super admins to admin panel, clinic users to dashboard
   useEffect(() => {
-    if (!isLoading && clinics.length > 0) {
+    if (saLoading || isLoading) return;
+    if (isSuperAdmin) {
+      navigate("/admin", { replace: true });
+      return;
+    }
+    if (clinics.length > 0) {
       navigate("/", { replace: true });
     }
-  }, [isLoading, clinics, navigate]);
+  }, [isLoading, saLoading, isSuperAdmin, clinics, navigate]);
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "" });
