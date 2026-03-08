@@ -446,6 +446,98 @@ export type Database = {
           },
         ]
       }
+      procedure_categories: {
+        Row: {
+          active: boolean
+          clinic_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          clinic_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          clinic_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedure_categories_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procedures: {
+        Row: {
+          active: boolean
+          category_id: string
+          clinic_id: string
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          name: string
+          suggested_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category_id: string
+          clinic_id: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          name: string
+          suggested_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category_id?: string
+          clinic_id?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          name?: string
+          suggested_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedures_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "procedure_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procedures_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -469,6 +561,57 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      protocols: {
+        Row: {
+          clinic_id: string
+          clinical_notes: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          procedure_id: string
+          steps: string | null
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          clinical_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          procedure_id: string
+          steps?: string | null
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          clinical_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          procedure_id?: string
+          steps?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocols_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "protocols_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       receivables: {
         Row: {
