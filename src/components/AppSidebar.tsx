@@ -84,6 +84,12 @@ const teamItems: MenuItem[] = [
   { title: "Comissões", url: "/team/commissions", icon: Percent, permission: "team" },
 ];
 
+const crmItems: MenuItem[] = [
+  { title: "Retornos", url: "/crm/return", icon: CalendarClock, permission: "crm" },
+  { title: "Inativos", url: "/crm/inactive", icon: UserX, permission: "crm" },
+  { title: "Histórico", url: "/crm/history", icon: MessageSquare, permission: "crm" },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
