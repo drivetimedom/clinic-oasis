@@ -27,7 +27,8 @@ export default function Auth() {
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        toast({ title: "Conta criada!", description: "Verifique seu email para confirmar." });
+        toast({ title: "Conta criada!" });
+        navigate("/");
       }
     } catch (error: any) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
