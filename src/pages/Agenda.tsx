@@ -141,7 +141,7 @@ export default function Agenda() {
         while (cur <= form.recurrence_end_date) {
           items.push({
             user_id: user!.id, clinic_id: clinicId, doctor_id: form.doctor_id,
-            patient_id: form.patient_id || null, title: form.title,
+            patient_id: form.patient_id || null, procedure_id: form.procedure_id || null, title: form.title,
             description: form.description || null, appointment_date: format(cur, "yyyy-MM-dd"),
             start_time: form.start_time, end_time: endTime,
             is_recurring: true, recurrence_type: form.recurrence_type,
