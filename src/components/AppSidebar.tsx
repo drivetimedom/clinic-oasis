@@ -53,6 +53,12 @@ const procedureItems: MenuItem[] = [
   { title: "Protocolos", url: "/procedures/protocols", icon: Syringe, permission: "procedures" },
 ];
 
+const stockItems: MenuItem[] = [
+  { title: "Produtos", url: "/stock/products", icon: Package, permission: "stock" },
+  { title: "Movimentações", url: "/stock/movements", icon: Package, permission: "stock" },
+  { title: "Controle de Lotes", url: "/stock/batches", icon: Package, permission: "stock" },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
