@@ -17,14 +17,15 @@ export type Permission =
   | 'commissions'
   | 'financial_reports'
   | 'consent'
-  | 'team';
+  | 'team'
+  | 'crm';
 
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
-  admin: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'settings', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports', 'consent', 'team'],
-  manager: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports', 'consent', 'team'],
-  reception: ['dashboard', 'agenda', 'patients', 'consent'],
+  admin: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'settings', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports', 'consent', 'team', 'crm'],
+  manager: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports', 'consent', 'team', 'crm'],
+  reception: ['dashboard', 'agenda', 'patients', 'consent', 'crm'],
   financial: ['dashboard', 'receivables', 'payables', 'cashflow', 'reports', 'billing', 'commissions', 'financial_reports'],
-  profissional: ['dashboard', 'agenda', 'patients', 'availability', 'procedures', 'consent'],
+  profissional: ['dashboard', 'agenda', 'patients', 'availability', 'procedures', 'consent', 'crm'],
 };
 
 export function getPermissions(role: string | null): Permission[] {

@@ -164,6 +164,7 @@ export function AppSidebar() {
         {renderGroup("Financeiro", financialItems)}
         {renderGroup("Equipe", teamItems)}
         {renderGroup("Termos e Consentimentos", consentItems)}
+        {renderGroup("CRM de Pacientes", crmItems)}
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>
 
