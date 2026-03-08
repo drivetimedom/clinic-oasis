@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -23,13 +24,14 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Building2, LogOut, Settings, User, Bell } from "lucide-react";
+import { Building2, LogOut, Settings, Shield, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, type AppRole } from "@/lib/permissions";
 
 export function AppLayout() {
   const { currentClinic, clinics, role, setCurrentClinicId } = useClinic();
   const { user } = useAuth();
+  const { isSuperAdmin } = useSuperAdmin();
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
@@ -100,6 +102,14 @@ export function AppLayout() {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuLabel className="text-xs text-muted-foreground">{user?.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {isSuperAdmin && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate("/admin")}>
+                        <Shield className="h-4 w-4 mr-2" />Painel Admin
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="h-4 w-4 mr-2" />Configurações
                   </DropdownMenuItem>
