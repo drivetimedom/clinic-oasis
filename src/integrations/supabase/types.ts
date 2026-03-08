@@ -225,6 +225,64 @@ export type Database = {
           },
         ]
       }
+      clinical_photos: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          id: string
+          observation: string | null
+          patient_id: string
+          photo_date: string
+          photo_type: string
+          photo_url: string
+          procedure_id: string | null
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          id?: string
+          observation?: string | null
+          patient_id: string
+          photo_date?: string
+          photo_type?: string
+          photo_url: string
+          procedure_id?: string | null
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          observation?: string | null
+          patient_id?: string
+          photo_date?: string
+          photo_type?: string
+          photo_url?: string
+          procedure_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_photos_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_photos_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_photos_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinics: {
         Row: {
           address: string | null
@@ -319,6 +377,218 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facial_assessments: {
+        Row: {
+          assessment_date: string
+          clinic_id: string
+          clinical_notes: string | null
+          created_at: string
+          doctor_id: string | null
+          facial_asymmetry: string | null
+          flaccidity_level: string | null
+          id: string
+          lip_volume: string | null
+          malar_volume: string | null
+          mandibular_volume: string | null
+          patient_id: string
+          skin_type: string | null
+          updated_at: string
+          wrinkles: string | null
+        }
+        Insert: {
+          assessment_date?: string
+          clinic_id: string
+          clinical_notes?: string | null
+          created_at?: string
+          doctor_id?: string | null
+          facial_asymmetry?: string | null
+          flaccidity_level?: string | null
+          id?: string
+          lip_volume?: string | null
+          malar_volume?: string | null
+          mandibular_volume?: string | null
+          patient_id: string
+          skin_type?: string | null
+          updated_at?: string
+          wrinkles?: string | null
+        }
+        Update: {
+          assessment_date?: string
+          clinic_id?: string
+          clinical_notes?: string | null
+          created_at?: string
+          doctor_id?: string | null
+          facial_asymmetry?: string | null
+          flaccidity_level?: string | null
+          id?: string
+          lip_volume?: string | null
+          malar_volume?: string | null
+          mandibular_volume?: string | null
+          patient_id?: string
+          skin_type?: string | null
+          updated_at?: string
+          wrinkles?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facial_assessments_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facial_assessments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facial_assessments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_evolutions: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          description: string
+          doctor_id: string | null
+          evolution_date: string
+          id: string
+          patient_id: string
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          description: string
+          doctor_id?: string | null
+          evolution_date?: string
+          id?: string
+          patient_id: string
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          description?: string
+          doctor_id?: string | null
+          evolution_date?: string
+          id?: string
+          patient_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_evolutions_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_evolutions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_evolutions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_procedures: {
+        Row: {
+          area_treated: string | null
+          clinic_id: string
+          clinical_notes: string | null
+          created_at: string
+          doctor_id: string | null
+          id: string
+          patient_id: string
+          procedure_date: string
+          procedure_id: string | null
+          protocol_id: string | null
+          quantity_applied: string | null
+          updated_at: string
+        }
+        Insert: {
+          area_treated?: string | null
+          clinic_id: string
+          clinical_notes?: string | null
+          created_at?: string
+          doctor_id?: string | null
+          id?: string
+          patient_id: string
+          procedure_date?: string
+          procedure_id?: string | null
+          protocol_id?: string | null
+          quantity_applied?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area_treated?: string | null
+          clinic_id?: string
+          clinical_notes?: string | null
+          created_at?: string
+          doctor_id?: string | null
+          id?: string
+          patient_id?: string
+          procedure_date?: string
+          procedure_id?: string | null
+          protocol_id?: string | null
+          quantity_applied?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_procedures_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_procedures_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_procedures_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_procedures_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_procedures_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "protocols"
             referencedColumns: ["id"]
           },
         ]
