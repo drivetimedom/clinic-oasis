@@ -68,6 +68,12 @@ const stockItems: MenuItem[] = [
   { title: "Controle de Lotes", url: "/stock/batches", icon: Package, permission: "stock" },
 ];
 
+const consentItems: MenuItem[] = [
+  { title: "Modelos de Termo", url: "/consent/templates", icon: FileSignature, permission: "consent" },
+  { title: "Solicitações", url: "/consent/requests", icon: FileSignature, permission: "consent" },
+  { title: "Assinaturas", url: "/consent/signatures", icon: FileSignature, permission: "consent" },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
