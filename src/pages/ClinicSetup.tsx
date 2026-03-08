@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClinic } from "@/contexts/ClinicContext";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { Building2 } from "lucide-react";
 
 export default function ClinicSetup() {
-  const { refetch } = useClinic();
+  const { refetch, clinics, isLoading } = useClinic();
+  const navigate = useNavigate();
+
+  // Redirect if user already has clinics
+  useEffect(() => {
+    if (!isLoading && clinics.length > 0) {
+      navigate("/", { replace: true });
+    }
+  }, [isLoading, clinics, navigate]);
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "" });
