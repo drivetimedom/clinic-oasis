@@ -10,6 +10,10 @@ import {
   Settings,
   Syringe,
   Package,
+  Receipt,
+  CreditCard,
+  Percent,
+  FileBarChart,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -38,6 +42,10 @@ const agendaItems: MenuItem[] = [
 ];
 
 const financialItems: MenuItem[] = [
+  { title: "Faturamento", url: "/billing", icon: Receipt, permission: "billing" },
+  { title: "Pagamentos", url: "/billing/payments", icon: CreditCard, permission: "billing" },
+  { title: "Comissões", url: "/billing/commissions", icon: Percent, permission: "commissions" },
+  { title: "Relatórios", url: "/billing/reports", icon: FileBarChart, permission: "financial_reports" },
   { title: "Contas a Receber", url: "/receivables", icon: ArrowDownCircle, permission: "receivables" },
   { title: "Contas a Pagar", url: "/payables", icon: ArrowUpCircle, permission: "payables" },
   { title: "Fluxo de Caixa", url: "/cash-flow", icon: BarChart3, permission: "cashflow" },

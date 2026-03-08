@@ -12,13 +12,16 @@ export type Permission =
   | 'doctors'
   | 'availability'
   | 'procedures'
-  | 'stock';
+  | 'stock'
+  | 'billing'
+  | 'commissions'
+  | 'financial_reports';
 
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
-  admin: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'settings', 'doctors', 'availability', 'procedures', 'stock'],
-  manager: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'doctors', 'availability', 'procedures', 'stock'],
+  admin: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'settings', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports'],
+  manager: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports'],
   reception: ['dashboard', 'agenda', 'patients'],
-  financial: ['dashboard', 'receivables', 'payables', 'cashflow', 'reports'],
+  financial: ['dashboard', 'receivables', 'payables', 'cashflow', 'reports', 'billing', 'commissions', 'financial_reports'],
   profissional: ['dashboard', 'agenda', 'patients', 'availability', 'procedures'],
 };
 

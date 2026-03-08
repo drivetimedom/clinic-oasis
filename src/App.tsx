@@ -28,6 +28,10 @@ import Protocols from "@/pages/Protocols";
 import StockProducts from "@/pages/StockProducts";
 import StockMovements from "@/pages/StockMovements";
 import StockBatches from "@/pages/StockBatches";
+import Billing from "@/pages/Billing";
+import BillingPayments from "@/pages/BillingPayments";
+import Commissions from "@/pages/Commissions";
+import FinancialReports from "@/pages/FinancialReports";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -124,6 +128,10 @@ const App = () => (
               <Route path="/receivables" element={<Receivables />} />
               <Route path="/payables" element={<Payables />} />
               <Route path="/cash-flow" element={<CashFlow />} />
+              <Route path="/billing" element={<Billing />} />
+              <Route path="/billing/payments" element={<BillingPayments />} />
+              <Route path="/billing/commissions" element={<Commissions />} />
+              <Route path="/billing/reports" element={<FinancialReports />} />
               <Route path="/patients" element={<Patients />} />
               <Route path="/patients/:id" element={<PatientProfile />} />
               <Route path="/agenda" element={<Agenda />} />

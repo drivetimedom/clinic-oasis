@@ -193,6 +193,128 @@ export type Database = {
           },
         ]
       }
+      billing_payments: {
+        Row: {
+          amount_paid: number
+          billing_id: string
+          clinic_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+        }
+        Insert: {
+          amount_paid?: number
+          billing_id: string
+          clinic_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+        }
+        Update: {
+          amount_paid?: number
+          billing_id?: string
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_payments_billing_id_fkey"
+            columns: ["billing_id"]
+            isOneToOne: false
+            referencedRelation: "billings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payments_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billings: {
+        Row: {
+          amount: number
+          amount_paid: number
+          billing_date: string
+          clinic_id: string
+          created_at: string
+          doctor_id: string | null
+          id: string
+          notes: string | null
+          patient_id: string | null
+          procedure_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          amount_paid?: number
+          billing_date?: string
+          clinic_id: string
+          created_at?: string
+          doctor_id?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          procedure_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_paid?: number
+          billing_date?: string
+          clinic_id?: string
+          created_at?: string
+          doctor_id?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          procedure_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billings_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billings_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billings_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billings_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_members: {
         Row: {
           clinic_id: string
@@ -331,11 +453,86 @@ export type Database = {
         }
         Relationships: []
       }
+      commissions: {
+        Row: {
+          billing_date: string
+          billing_id: string | null
+          clinic_id: string
+          commission_amount: number
+          commission_percentage: number
+          created_at: string
+          doctor_id: string
+          id: string
+          procedure_amount: number
+          procedure_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          billing_date?: string
+          billing_id?: string | null
+          clinic_id: string
+          commission_amount?: number
+          commission_percentage?: number
+          created_at?: string
+          doctor_id: string
+          id?: string
+          procedure_amount?: number
+          procedure_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_date?: string
+          billing_id?: string | null
+          clinic_id?: string
+          commission_amount?: number
+          commission_percentage?: number
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          procedure_amount?: number
+          procedure_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_billing_id_fkey"
+            columns: ["billing_id"]
+            isOneToOne: false
+            referencedRelation: "billings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctors: {
         Row: {
           active: boolean
           clinic_id: string | null
           color: string
+          commission_percentage: number | null
           created_at: string
           email: string | null
           id: string
@@ -349,6 +546,7 @@ export type Database = {
           active?: boolean
           clinic_id?: string | null
           color?: string
+          commission_percentage?: number | null
           created_at?: string
           email?: string | null
           id?: string
@@ -362,6 +560,7 @@ export type Database = {
           active?: boolean
           clinic_id?: string | null
           color?: string
+          commission_percentage?: number | null
           created_at?: string
           email?: string | null
           id?: string
