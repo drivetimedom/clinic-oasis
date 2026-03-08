@@ -96,6 +96,13 @@ const crmItems: MenuItem[] = [
   { title: "Histórico", url: "/crm/history", icon: MessageSquare, permission: "crm" },
 ];
 
+const planningItems: MenuItem[] = [
+  { title: "Custos da Clínica", url: "/planning/costs", icon: DollarSign, permission: "planning" },
+  { title: "Precificação", url: "/planning/pricing", icon: TrendingUp, permission: "planning" },
+  { title: "Metas", url: "/planning/goals", icon: Target, permission: "planning" },
+  { title: "Métricas de Captação", url: "/planning/acquisition", icon: PieChart, permission: "planning" },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
