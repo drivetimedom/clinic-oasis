@@ -25,6 +25,9 @@ import ResetPassword from "@/pages/ResetPassword";
 import ProcedureCategories from "@/pages/ProcedureCategories";
 import ProceduresPage from "@/pages/Procedures";
 import Protocols from "@/pages/Protocols";
+import StockProducts from "@/pages/StockProducts";
+import StockMovements from "@/pages/StockMovements";
+import StockBatches from "@/pages/StockBatches";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -128,6 +131,9 @@ const App = () => (
               <Route path="/procedures/categories" element={<ProcedureCategories />} />
               <Route path="/procedures" element={<ProceduresPage />} />
               <Route path="/procedures/protocols" element={<Protocols />} />
+              <Route path="/stock/products" element={<StockProducts />} />
+              <Route path="/stock/movements" element={<StockMovements />} />
+              <Route path="/stock/batches" element={<StockBatches />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
