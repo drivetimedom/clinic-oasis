@@ -50,6 +50,7 @@ function SuperAdminSidebarContent() {
     { title: "Dashboard Plataforma", url: "/admin", icon: LayoutDashboard },
     { title: "Clínicas", url: "/admin/clinics", icon: Building2 },
     { title: "Usuários da Plataforma", url: "/admin/users", icon: Users },
+    { title: "Atividade do Sistema", url: "/admin/activity", icon: Activity },
   ];
 
   return (

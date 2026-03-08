@@ -109,6 +109,7 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/clinics" element={<AdminClinics />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/activity" element={<ActivityLog />} />
             </Route>
             {/* Clinic Routes */}
             <Route element={<ClinicGuard />}>
