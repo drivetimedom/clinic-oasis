@@ -166,7 +166,7 @@ export default function Agenda() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       setOpen(false);
-      setForm({ doctor_id: "", patient_id: "", title: "", description: "", appointment_date: new Date(), start_time: "", end_time: "", is_recurring: false, recurrence_type: "weekly", recurrence_end_date: null });
+      setForm({ doctor_id: "", patient_id: "", procedure_id: "", title: "", description: "", appointment_date: new Date(), start_time: "", end_time: "", is_recurring: false, recurrence_type: "weekly", recurrence_end_date: null });
       toast({ title: "Agendamento criado!" });
     },
     onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
