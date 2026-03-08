@@ -5,6 +5,9 @@ import {
   ArrowUpCircle,
   BarChart3,
   LogOut,
+  CalendarDays,
+  Stethoscope,
+  Clock,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -31,7 +34,13 @@ const financialItems = [
   { title: "Fluxo de Caixa", url: "/cash-flow", icon: BarChart3 },
 ];
 
-const patientItems = [
+const agendaItems = [
+  { title: "Agenda", url: "/agenda", icon: CalendarDays },
+  { title: "Doutoras", url: "/doctors", icon: Stethoscope },
+  { title: "Disponibilidade", url: "/availability", icon: Clock },
+];
+
+const clinicItems = [
   { title: "Pacientes", url: "/patients", icon: Users },
 ];
 
@@ -47,6 +56,26 @@ export function AppSidebar() {
     await supabase.auth.signOut();
     navigate("/auth");
   };
+
+  const renderGroup = (label: string, items: typeof financialItems) => (
+    <SidebarGroup>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                <NavLink to={item.url} end activeClassName="bg-sidebar-accent text-primary font-medium">
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.title}</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -65,57 +94,9 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Financeiro</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {financialItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <NavLink
-                      to={item.url}
-                      end
-                      activeClassName="bg-sidebar-accent text-primary font-medium"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Clínica</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {patientItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <NavLink
-                      to={item.url}
-                      end
-                      activeClassName="bg-sidebar-accent text-primary font-medium"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {renderGroup("Agendamento", agendaItems)}
+        {renderGroup("Financeiro", financialItems)}
+        {renderGroup("Clínica", clinicItems)}
       </SidebarContent>
 
       <SidebarFooter className="p-2">

@@ -12,6 +12,9 @@ import Payables from "@/pages/Payables";
 import CashFlow from "@/pages/CashFlow";
 import Patients from "@/pages/Patients";
 import PatientProfile from "@/pages/PatientProfile";
+import Agenda from "@/pages/Agenda";
+import Doctors from "@/pages/Doctors";
+import Availability from "@/pages/Availability";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +57,9 @@ const App = () => (
             <Route path="/cash-flow" element={<CashFlow />} />
             <Route path="/patients" element={<Patients />} />
             <Route path="/patients/:id" element={<PatientProfile />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/doctors" element={<Doctors />} />
+            <Route path="/availability" element={<Availability />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
