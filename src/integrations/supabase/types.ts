@@ -195,6 +195,7 @@ export type Database = {
           name: string
           phone: string | null
           slug: string | null
+          status: string
           updated_at: string
         }
         Insert: {
@@ -206,6 +207,7 @@ export type Database = {
           name: string
           phone?: string | null
           slug?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -217,6 +219,7 @@ export type Database = {
           name?: string
           phone?: string | null
           slug?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -494,6 +497,24 @@ export type Database = {
           },
         ]
       }
+      super_admins: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -520,9 +541,10 @@ export type Database = {
         Args: { _clinic_id: string; _user_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "manager" | "reception" | "financial"
+      app_role: "admin" | "manager" | "reception" | "financial" | "profissional"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -650,7 +672,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager", "reception", "financial"],
+      app_role: ["admin", "manager", "reception", "financial", "profissional"],
     },
   },
 } as const
