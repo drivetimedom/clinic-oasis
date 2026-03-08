@@ -7,11 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, ClipboardList } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, ClipboardList, SlidersHorizontal } from "lucide-react";
 import FacialAssessments from "@/components/medical-records/FacialAssessments";
 import PatientProcedures from "@/components/medical-records/PatientProcedures";
 import PatientEvolutions from "@/components/medical-records/PatientEvolutions";
 import ClinicalPhotos from "@/components/medical-records/ClinicalPhotos";
+import BeforeAfterComparison from "@/components/medical-records/BeforeAfterComparison";
 
 export default function PatientProfile() {
   const { id } = useParams();
@@ -74,6 +75,7 @@ export default function PatientProfile() {
       <Tabs defaultValue="prontuario" className="w-full">
         <TabsList className="w-full justify-start">
           <TabsTrigger value="prontuario" className="gap-2"><ClipboardList className="h-4 w-4" />Prontuário</TabsTrigger>
+          <TabsTrigger value="antes-depois" className="gap-2"><SlidersHorizontal className="h-4 w-4" />Antes e Depois</TabsTrigger>
           <TabsTrigger value="financeiro" className="gap-2"><FileText className="h-4 w-4" />Financeiro</TabsTrigger>
         </TabsList>
 
@@ -82,6 +84,10 @@ export default function PatientProfile() {
           <PatientProcedures patientId={id!} />
           <PatientEvolutions patientId={id!} />
           <ClinicalPhotos patientId={id!} />
+        </TabsContent>
+
+        <TabsContent value="antes-depois" className="space-y-6 mt-4">
+          <BeforeAfterComparison patientId={id!} />
         </TabsContent>
 
         <TabsContent value="financeiro" className="mt-4">
