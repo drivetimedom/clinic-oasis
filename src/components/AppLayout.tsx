@@ -31,6 +31,7 @@ import { ROLE_LABELS, type AppRole } from "@/lib/permissions";
 export function AppLayout() {
   const { currentClinic, clinics, role, setCurrentClinicId } = useClinic();
   const { user } = useAuth();
+  const { isSuperAdmin } = useSuperAdmin();
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
