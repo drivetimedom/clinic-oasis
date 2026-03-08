@@ -86,7 +86,7 @@ export default function Agenda() {
     queryKey: ["appointments", clinicId, format(weekStart, "yyyy-MM-dd"), format(weekEnd, "yyyy-MM-dd")],
     queryFn: async () => {
       const { data } = await supabase
-        .from("appointments").select("*, doctors(name, color), patients(name)")
+        .from("appointments").select("*, doctors(name, color), patients(name), procedures(name)")
         .eq("clinic_id", clinicId)
         .gte("appointment_date", format(weekStart, "yyyy-MM-dd"))
         .lte("appointment_date", format(weekEnd, "yyyy-MM-dd"))
