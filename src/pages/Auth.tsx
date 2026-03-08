@@ -8,6 +8,150 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 export default function Auth() {
+  const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast({ title: "Email enviado!", description: "Verifique sua caixa de entrada para redefinir a senha." });
+        setMode("login");
+      } else if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        navigate("/");
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
+        });
+        if (error) throw error;
+        toast({ title: "Conta criada!", description: "Verifique seu email para confirmar." });
+      }
+    } catch (error: any) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemo = async () => {
+    setLoading(true);
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: "demo@hofcircle.com",
+        password: "demo123456",
+      });
+      if (signInError) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: "demo@hofcircle.com",
+          password: "demo123456",
+          options: { data: { full_name: "Usuário Demo" } },
+        });
+        if (signUpError) throw signUpError;
+      }
+      navigate("/");
+    } catch (error: any) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const titles = {
+    login: { title: "Entre na sua conta", button: "Entrar" },
+    register: { title: "Crie sua conta", button: "Criar conta" },
+    forgot: { title: "Recuperar senha", button: "Enviar email de recuperação" },
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md border-border">
+        <CardHeader className="text-center">
+          <div className="mx-auto h-12 w-12 rounded-xl bg-primary flex items-center justify-center mb-4">
+            <span className="text-primary-foreground font-bold text-lg">HC</span>
+          </div>
+          <CardTitle className="text-2xl">Hof Circle Gestão</CardTitle>
+          <CardDescription>{titles[mode].title}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {mode !== "forgot" && (
+            <>
+              <div className="mb-6">
+                <Button type="button" variant="outline" className="w-full border-primary/30 hover:bg-primary/10 hover:text-primary" disabled={loading} onClick={handleDemo}>
+                  🚀 Entrar com conta demo
+                </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2">demo@hofcircle.com / demo123456</p>
+              </div>
+              <div className="relative mb-4">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+                <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">ou</span></div>
+              </div>
+            </>
+          )}
+
+          {mode === "forgot" && (
+            <p className="text-sm text-muted-foreground mb-4">
+              Informe seu email e enviaremos um link para redefinir sua senha.
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === "register" && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nome Completo</Label>
+                <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Seu nome" />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="seu@email.com" />
+            </div>
+            {mode !== "forgot" && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Senha</Label>
+                  {mode === "login" && (
+                    <button type="button" className="text-xs text-muted-foreground hover:text-primary transition-colors" onClick={() => setMode("forgot")}>
+                      Esqueceu a senha?
+                    </button>
+                  )}
+                </div>
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" minLength={6} />
+              </div>
+            )}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Carregando..." : titles[mode].button}
+            </Button>
+          </form>
+          <div className="mt-4 text-center space-y-1">
+            {mode === "forgot" ? (
+              <button type="button" className="text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setMode("login")}>
+                Voltar ao login
+              </button>
+            ) : (
+              <button type="button" className="text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setMode(mode === "login" ? "register" : "login")}>
+                {mode === "login" ? "Não tem conta? Criar conta" : "Já tem conta? Entrar"}
+              </button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
