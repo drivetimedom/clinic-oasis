@@ -74,6 +74,14 @@ export default function Agenda() {
     },
   });
 
+  const { data: clinicProcedures = [] } = useQuery({
+    queryKey: ["procedures_active_agenda", clinicId],
+    queryFn: async () => {
+      const { data } = await supabase.from("procedures").select("id, name").eq("clinic_id", clinicId).eq("active", true).order("name");
+      return data || [];
+    },
+  });
+
   const { data: appointments = [] } = useQuery({
     queryKey: ["appointments", clinicId, format(weekStart, "yyyy-MM-dd"), format(weekEnd, "yyyy-MM-dd")],
     queryFn: async () => {
