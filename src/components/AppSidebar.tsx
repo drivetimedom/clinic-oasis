@@ -206,6 +206,7 @@ export function AppSidebar() {
         {renderGroup("Procedimentos", procedureItems)}
         {renderGroup("Estoque", stockItems)}
         {renderGroup("Financeiro", financialItems)}
+        {renderGroup("Planejamento", planningItems)}
         {renderGroup("Equipe", teamItems)}
         {renderGroup("Termos", consentItems)}
         {renderGroup("CRM", crmItems)}
