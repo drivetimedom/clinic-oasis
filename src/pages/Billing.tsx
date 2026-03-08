@@ -58,6 +58,14 @@ export default function Billing() {
     queryFn: async () => { const { data } = await supabase.from("doctors").select("id, name, commission_percentage").eq("clinic_id", clinicId).eq("active", true).order("name"); return data || []; },
   });
 
+  const { data: commissionRules = [] } = useQuery({
+    queryKey: ["commission-rules", clinicId],
+    queryFn: async () => {
+      const { data } = await supabase.from("commission_rules").select("*").eq("clinic_id", clinicId);
+      return data || [];
+    },
+  });
+
   const { data: billings = [], isLoading } = useQuery({
     queryKey: ["billings", clinicId],
     queryFn: async () => {
