@@ -6,7 +6,12 @@ import { formatDate, formatCurrency, getStatusLabel, getStatusColor } from "@/li
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, ClipboardList } from "lucide-react";
+import FacialAssessments from "@/components/medical-records/FacialAssessments";
+import PatientProcedures from "@/components/medical-records/PatientProcedures";
+import PatientEvolutions from "@/components/medical-records/PatientEvolutions";
+import ClinicalPhotos from "@/components/medical-records/ClinicalPhotos";
 
 export default function PatientProfile() {
   const { id } = useParams();
@@ -42,6 +47,7 @@ export default function PatientProfile() {
         <Button variant="ghost" size="icon" onClick={() => navigate("/patients")}><ArrowLeft className="h-5 w-5" /></Button>
         <h1 className="text-2xl font-bold">Ficha do Paciente</h1>
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1">
           <CardHeader><CardTitle className="flex items-center gap-2"><User className="h-5 w-5 text-primary" />Dados Pessoais</CardTitle></CardHeader>
@@ -64,18 +70,35 @@ export default function PatientProfile() {
           <CardContent><p className="text-sm text-muted-foreground whitespace-pre-wrap">{patient.notes || "Nenhuma observação registrada."}</p></CardContent>
         </Card>
       </div>
-      <Card>
-        <CardHeader><CardTitle>Histórico Financeiro</CardTitle></CardHeader>
-        <CardContent>
-          {receivables.length === 0 ? <p className="text-muted-foreground text-sm text-center py-4">Nenhum registro financeiro.</p>
-          : <div className="space-y-3">{receivables.map((r) => (
-            <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-              <div><p className="font-medium text-sm">{r.description}</p><p className="text-xs text-muted-foreground">Venc: {formatDate(r.due_date)}</p></div>
-              <div className="flex items-center gap-3"><Badge className={getStatusColor(r.status)}>{getStatusLabel(r.status)}</Badge><span className="font-bold">{formatCurrency(Number(r.amount))}</span></div>
-            </div>
-          ))}</div>}
-        </CardContent>
-      </Card>
+
+      <Tabs defaultValue="prontuario" className="w-full">
+        <TabsList className="w-full justify-start">
+          <TabsTrigger value="prontuario" className="gap-2"><ClipboardList className="h-4 w-4" />Prontuário</TabsTrigger>
+          <TabsTrigger value="financeiro" className="gap-2"><FileText className="h-4 w-4" />Financeiro</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="prontuario" className="space-y-6 mt-4">
+          <FacialAssessments patientId={id!} />
+          <PatientProcedures patientId={id!} />
+          <PatientEvolutions patientId={id!} />
+          <ClinicalPhotos patientId={id!} />
+        </TabsContent>
+
+        <TabsContent value="financeiro" className="mt-4">
+          <Card>
+            <CardHeader><CardTitle>Histórico Financeiro</CardTitle></CardHeader>
+            <CardContent>
+              {receivables.length === 0 ? <p className="text-muted-foreground text-sm text-center py-4">Nenhum registro financeiro.</p>
+              : <div className="space-y-3">{receivables.map((r) => (
+                <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
+                  <div><p className="font-medium text-sm">{r.description}</p><p className="text-xs text-muted-foreground">Venc: {formatDate(r.due_date)}</p></div>
+                  <div className="flex items-center gap-3"><Badge className={getStatusColor(r.status)}>{getStatusLabel(r.status)}</Badge><span className="font-bold">{formatCurrency(Number(r.amount))}</span></div>
+                </div>
+              ))}</div>}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
