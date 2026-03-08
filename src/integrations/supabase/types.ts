@@ -907,6 +907,51 @@ export type Database = {
           },
         ]
       }
+      patient_interactions: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          description: string
+          id: string
+          interaction_date: string
+          interaction_type: string
+          patient_id: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          description: string
+          id?: string
+          interaction_date?: string
+          interaction_type?: string
+          patient_id: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          interaction_date?: string
+          interaction_type?: string
+          patient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_interactions_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_interactions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_procedures: {
         Row: {
           area_treated: string | null
@@ -1204,6 +1249,7 @@ export type Database = {
           duration_minutes: number | null
           id: string
           name: string
+          return_days: number | null
           suggested_price: number | null
           updated_at: string
         }
@@ -1216,6 +1262,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           name: string
+          return_days?: number | null
           suggested_price?: number | null
           updated_at?: string
         }
@@ -1228,6 +1275,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           name?: string
+          return_days?: number | null
           suggested_price?: number | null
           updated_at?: string
         }
