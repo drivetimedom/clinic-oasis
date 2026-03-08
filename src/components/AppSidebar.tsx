@@ -98,6 +98,19 @@ export function AppSidebar() {
   const location = useLocation();
   const { role } = useClinic();
 
+  const { data: settings } = useQuery({
+    queryKey: ["platform-settings-public"],
+    queryFn: async () => {
+      const { data } = await supabase.from("platform_settings").select("key, value");
+      const map: Record<string, string> = {};
+      data?.forEach((s: any) => { map[s.key] = s.value; });
+      return map;
+    },
+  });
+
+  const logoUrl = settings?.logo_url || "";
+  const logoText = settings?.logo_text || "H";
+
   const isActive = (path: string) => location.pathname === path;
 
   const filterByPermission = (items: MenuItem[]) =>
@@ -138,9 +151,15 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-6 py-5 border-b border-[hsl(0_0%_100%/0.06)]">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(142_69%_45%)] flex items-center justify-center shrink-0">
-            <span className="text-primary-foreground font-bold text-[15px]">H</span>
-          </div>
+          {logoUrl ? (
+            <div className="h-8 w-8 rounded-lg border border-border bg-[hsl(0_0%_100%/0.05)] flex items-center justify-center shrink-0 overflow-hidden">
+              <img src={logoUrl} alt="Logo" className="h-full w-full object-contain" />
+            </div>
+          ) : (
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(142_69%_45%)] flex items-center justify-center shrink-0">
+              <span className="text-primary-foreground font-bold text-[15px]">{logoText.charAt(0)}</span>
+            </div>
+          )}
           {!collapsed && (
             <div>
               <p className="text-[15px] font-semibold text-foreground">Hof Circle</p>
