@@ -25,7 +25,7 @@ import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
-
+import ActivityLog from "@/pages/admin/ActivityLog";
 const queryClient = new QueryClient();
 
 function LoadingScreen() {
