@@ -42,6 +42,7 @@ export default function Protocols() {
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
+  const [materials, setMaterials] = useState("");
   const [filterProcedure, setFilterProcedure] = useState<string>("all");
 
   const { data: procedures = [] } = useQuery({
