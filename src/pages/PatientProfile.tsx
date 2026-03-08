@@ -7,11 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, ClipboardList } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, ClipboardList, SlidersHorizontal } from "lucide-react";
 import FacialAssessments from "@/components/medical-records/FacialAssessments";
 import PatientProcedures from "@/components/medical-records/PatientProcedures";
 import PatientEvolutions from "@/components/medical-records/PatientEvolutions";
 import ClinicalPhotos from "@/components/medical-records/ClinicalPhotos";
+import BeforeAfterComparison from "@/components/medical-records/BeforeAfterComparison";
 
 export default function PatientProfile() {
   const { id } = useParams();
