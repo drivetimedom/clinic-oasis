@@ -75,6 +75,12 @@ const consentItems: MenuItem[] = [
   { title: "Assinaturas", url: "/consent/signatures", icon: FileSignature, permission: "consent" },
 ];
 
+const teamItems: MenuItem[] = [
+  { title: "Profissionais", url: "/team/professionals", icon: UserCog, permission: "team" },
+  { title: "Cargos", url: "/team/positions", icon: UserCog, permission: "team" },
+  { title: "Comissões", url: "/team/commissions", icon: Percent, permission: "team" },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
