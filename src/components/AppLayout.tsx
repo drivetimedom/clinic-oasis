@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, type AppRole } from "@/lib/permissions";
 
 export function AppLayout() {
-  const { currentClinic, clinics, role, setCurrentClinicId } = useClinic();
+  const { currentClinic, clinics, role, setCurrentClinicId, isSuperAdminMode, exitSuperAdminMode } = useClinic();
   const { user } = useAuth();
   const { isSuperAdmin } = useSuperAdmin();
   const navigate = useNavigate();
