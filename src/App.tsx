@@ -154,6 +154,9 @@ const App = () => (
               <Route path="/consent/templates" element={<ConsentTemplates />} />
               <Route path="/consent/requests" element={<ConsentRequests />} />
               <Route path="/consent/signatures" element={<ConsentSignatures />} />
+              <Route path="/team/professionals" element={<TeamProfessionals />} />
+              <Route path="/team/positions" element={<Positions />} />
+              <Route path="/team/commissions" element={<CommissionConfig />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
