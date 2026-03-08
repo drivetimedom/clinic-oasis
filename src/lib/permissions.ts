@@ -12,7 +12,10 @@ export type Permission =
   | 'doctors'
   | 'availability'
   | 'procedures'
-  | 'stock';
+  | 'stock'
+  | 'billing'
+  | 'commissions'
+  | 'financial_reports';
 
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
   admin: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'settings', 'doctors', 'availability', 'procedures', 'stock'],
