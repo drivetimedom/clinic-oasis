@@ -46,9 +46,9 @@ function SuperAdminSidebarContent() {
   const isActive = (path: string) => location.pathname === path;
 
   const menuItems = [
-    { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+    { title: "Dashboard Plataforma", url: "/admin", icon: LayoutDashboard },
     { title: "Clínicas", url: "/admin/clinics", icon: Building2 },
-    { title: "Usuários", url: "/admin/users", icon: Users },
+    { title: "Usuários da Plataforma", url: "/admin/users", icon: Users },
   ];
 
   return (
