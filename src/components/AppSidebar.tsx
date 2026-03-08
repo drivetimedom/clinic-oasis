@@ -121,6 +121,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         {renderGroup("Agendamento", agendaItems)}
+        {renderGroup("Procedimentos", procedureItems)}
         {renderGroup("Financeiro", financialItems)}
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>
