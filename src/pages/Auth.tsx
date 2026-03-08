@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,7 @@ export default function Auth() {
   const loginTitle = settings?.login_title || "Hof Circle Gestão";
   const loginSubtitle = settings?.login_subtitle || "Sistema de gestão para clínicas estéticas";
   const logoText = settings?.logo_text || "HC";
+  const logoUrl = settings?.logo_url || "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,23 +73,26 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[40%] -right-[20%] w-[60%] h-[60%] rounded-full bg-primary/5 blur-3xl" />
         <div className="absolute -bottom-[30%] -left-[20%] w-[50%] h-[50%] rounded-full bg-primary/3 blur-3xl" />
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo & title */}
         <div className="text-center mb-8">
-          <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-[hsl(142_69%_45%)] flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
-            <span className="text-primary-foreground font-bold text-xl">{logoText}</span>
-          </div>
+          {logoUrl ? (
+            <div className="mx-auto h-14 w-14 rounded-2xl flex items-center justify-center mb-6 overflow-hidden border border-border bg-[hsl(0_0%_100%/0.05)]">
+              <img src={logoUrl} alt="Logo" className="h-full w-full object-contain" />
+            </div>
+          ) : (
+            <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-[hsl(142_69%_45%)] flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
+              <span className="text-primary-foreground font-bold text-xl">{logoText}</span>
+            </div>
+          )}
           <h1 className="text-[28px] font-bold tracking-tight text-foreground">{loginTitle}</h1>
           <p className="text-[15px] text-muted-foreground mt-1">{loginSubtitle}</p>
         </div>
 
-        {/* Card */}
         <div className="rounded-2xl border border-[hsl(var(--glass-border))] bg-gradient-to-br from-[hsl(0_0%_100%/0.06)] to-[hsl(0_0%_100%/0.02)] backdrop-blur-xl p-8">
           <div className="mb-6">
             <h2 className="text-[18px] font-semibold text-foreground">{titles[mode].title}</h2>
