@@ -156,7 +156,7 @@ export default function Agenda() {
       } else {
         const { error } = await supabase.from("appointments").insert({
           user_id: user!.id, clinic_id: clinicId, doctor_id: form.doctor_id,
-          patient_id: form.patient_id || null, title: form.title,
+          patient_id: form.patient_id || null, procedure_id: form.procedure_id || null, title: form.title,
           description: form.description || null, appointment_date: dateStr,
           start_time: form.start_time, end_time: endTime,
         });
