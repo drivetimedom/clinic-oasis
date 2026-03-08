@@ -48,6 +48,46 @@ export default function Auth() {
           <CardDescription>{isLogin ? "Entre na sua conta" : "Crie sua conta"}</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-6">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-primary/30 hover:bg-primary/10 hover:text-primary"
+              disabled={loading}
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  // Try to sign in first
+                  const { error: signInError } = await supabase.auth.signInWithPassword({
+                    email: "demo@hofcircle.com",
+                    password: "demo123456",
+                  });
+                  if (signInError) {
+                    // If user doesn't exist, create it
+                    const { error: signUpError } = await supabase.auth.signUp({
+                      email: "demo@hofcircle.com",
+                      password: "demo123456",
+                    });
+                    if (signUpError) throw signUpError;
+                  }
+                  navigate("/");
+                } catch (error: any) {
+                  toast({ title: "Erro", description: error.message, variant: "destructive" });
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              🚀 Entrar com conta demo
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-2">demo@hofcircle.com / demo123456</p>
+          </div>
+
+          <div className="relative mb-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+            <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">ou</span></div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
