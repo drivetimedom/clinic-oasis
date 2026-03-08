@@ -32,6 +32,10 @@ import Billing from "@/pages/Billing";
 import BillingPayments from "@/pages/BillingPayments";
 import Commissions from "@/pages/Commissions";
 import FinancialReports from "@/pages/FinancialReports";
+import ConsentTemplates from "@/pages/ConsentTemplates";
+import ConsentRequests from "@/pages/ConsentRequests";
+import ConsentSignatures from "@/pages/ConsentSignatures";
+import ConsentSign from "@/pages/ConsentSign";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -113,6 +117,7 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<AuthRoute />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/consent/sign/:token" element={<ConsentSign />} />
           <Route element={<ProtectedApp />}>
             <Route path="/clinic-setup" element={<ClinicSetup />} />
             {/* Super Admin Routes */}
@@ -143,6 +148,9 @@ const App = () => (
               <Route path="/stock/products" element={<StockProducts />} />
               <Route path="/stock/movements" element={<StockMovements />} />
               <Route path="/stock/batches" element={<StockBatches />} />
+              <Route path="/consent/templates" element={<ConsentTemplates />} />
+              <Route path="/consent/requests" element={<ConsentRequests />} />
+              <Route path="/consent/signatures" element={<ConsentSignatures />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

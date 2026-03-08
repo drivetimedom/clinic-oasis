@@ -14,6 +14,7 @@ import {
   CreditCard,
   Percent,
   FileBarChart,
+  FileSignature,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -65,6 +66,12 @@ const stockItems: MenuItem[] = [
   { title: "Produtos", url: "/stock/products", icon: Package, permission: "stock" },
   { title: "Movimentações", url: "/stock/movements", icon: Package, permission: "stock" },
   { title: "Controle de Lotes", url: "/stock/batches", icon: Package, permission: "stock" },
+];
+
+const consentItems: MenuItem[] = [
+  { title: "Modelos de Termo", url: "/consent/templates", icon: FileSignature, permission: "consent" },
+  { title: "Solicitações", url: "/consent/requests", icon: FileSignature, permission: "consent" },
+  { title: "Assinaturas", url: "/consent/signatures", icon: FileSignature, permission: "consent" },
 ];
 
 export function AppSidebar() {
@@ -139,6 +146,7 @@ export function AppSidebar() {
         {renderGroup("Procedimentos", procedureItems)}
         {renderGroup("Estoque", stockItems)}
         {renderGroup("Financeiro", financialItems)}
+        {renderGroup("Termos e Consentimentos", consentItems)}
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>
 

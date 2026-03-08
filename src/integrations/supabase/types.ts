@@ -527,6 +527,134 @@ export type Database = {
           },
         ]
       }
+      consent_requests: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          patient_id: string
+          patient_name: string | null
+          procedure_id: string | null
+          sent_at: string
+          signature_data: string | null
+          signed_at: string | null
+          status: string
+          template_id: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          patient_id: string
+          patient_name?: string | null
+          procedure_id?: string | null
+          sent_at?: string
+          signature_data?: string | null
+          signed_at?: string | null
+          status?: string
+          template_id: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          patient_id?: string
+          patient_name?: string | null
+          procedure_id?: string | null
+          sent_at?: string
+          signature_data?: string | null
+          signed_at?: string | null
+          status?: string
+          template_id?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_requests_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_requests_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_requests_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_requests_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "consent_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consent_templates: {
+        Row: {
+          active: boolean
+          clinic_id: string
+          content: string
+          created_at: string
+          id: string
+          procedure_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          clinic_id: string
+          content?: string
+          created_at?: string
+          id?: string
+          procedure_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          clinic_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          procedure_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_templates_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_templates_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctors: {
         Row: {
           active: boolean
@@ -1349,6 +1477,7 @@ export type Database = {
         Args: { _clinic_id: string; _user_id: string }
         Returns: string
       }
+      get_consent_by_token: { Args: { _token: string }; Returns: Json }
       get_super_admin_users: {
         Args: never
         Returns: {
@@ -1367,6 +1496,10 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      sign_consent: {
+        Args: { _patient_name: string; _signature_data: string; _token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "reception" | "financial" | "profissional"
