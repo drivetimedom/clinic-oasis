@@ -90,8 +90,12 @@ export default function Billing() {
 
       // Auto-create commission if doctor selected
       if (form.doctor_id && billing) {
+        // Check for specific commission rule first, then use default
+        const specificRule = commissionRules.find((r: any) =>
+          r.doctor_id === form.doctor_id && r.procedure_id === form.procedure_id
+        );
         const doctor = doctors.find((d: any) => d.id === form.doctor_id);
-        const pct = doctor?.commission_percentage || 0;
+        const pct = specificRule ? Number(specificRule.percentage) : (doctor?.commission_percentage || 0);
         if (pct > 0) {
           await supabase.from("commissions").insert({
             clinic_id: clinicId,
