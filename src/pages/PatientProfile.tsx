@@ -75,6 +75,7 @@ export default function PatientProfile() {
       <Tabs defaultValue="prontuario" className="w-full">
         <TabsList className="w-full justify-start">
           <TabsTrigger value="prontuario" className="gap-2"><ClipboardList className="h-4 w-4" />Prontuário</TabsTrigger>
+          <TabsTrigger value="antes-depois" className="gap-2"><SlidersHorizontal className="h-4 w-4" />Antes e Depois</TabsTrigger>
           <TabsTrigger value="financeiro" className="gap-2"><FileText className="h-4 w-4" />Financeiro</TabsTrigger>
         </TabsList>
 
