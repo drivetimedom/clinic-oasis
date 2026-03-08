@@ -252,7 +252,7 @@ export default function Billing() {
                 <TableCell>{b.doctors?.name || "—"}</TableCell>
                 <TableCell>{formatCurrency(Number(b.amount))}</TableCell>
                 <TableCell>{formatCurrency(Number(b.amount_paid))}</TableCell>
-                <TableCell><Badge className={statusColors[b.status] || ""}>{statusLabels[b.status] || b.status}</Badge></TableCell>
+                <TableCell><Badge variant={statusVariants[b.status] || "secondary"}>{statusLabels[b.status] || b.status}</Badge></TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     {b.status === "pending" && (
