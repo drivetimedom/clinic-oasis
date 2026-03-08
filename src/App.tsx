@@ -131,6 +131,9 @@ const App = () => (
               <Route path="/procedures/categories" element={<ProcedureCategories />} />
               <Route path="/procedures" element={<ProceduresPage />} />
               <Route path="/procedures/protocols" element={<Protocols />} />
+              <Route path="/stock/products" element={<StockProducts />} />
+              <Route path="/stock/movements" element={<StockMovements />} />
+              <Route path="/stock/batches" element={<StockBatches />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
