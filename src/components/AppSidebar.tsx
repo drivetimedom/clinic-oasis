@@ -37,6 +37,8 @@ import {
 } from "@/components/ui/sidebar";
 import { useClinic } from "@/contexts/ClinicContext";
 import { hasPermission, type Permission } from "@/lib/permissions";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type MenuItem = { title: string; url: string; icon: any; permission: Permission };
 
