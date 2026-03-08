@@ -126,6 +126,7 @@ export default function Protocols() {
     setDescription("");
     setSteps("");
     setClinicalNotes("");
+    setMaterials("");
     setProcedureId("");
   };
 
