@@ -19,11 +19,11 @@ export type Permission =
   | 'consent';
 
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
-  admin: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'settings', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports'],
-  manager: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports'],
-  reception: ['dashboard', 'agenda', 'patients'],
+  admin: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'settings', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports', 'consent'],
+  manager: ['dashboard', 'agenda', 'patients', 'receivables', 'payables', 'cashflow', 'reports', 'doctors', 'availability', 'procedures', 'stock', 'billing', 'commissions', 'financial_reports', 'consent'],
+  reception: ['dashboard', 'agenda', 'patients', 'consent'],
   financial: ['dashboard', 'receivables', 'payables', 'cashflow', 'reports', 'billing', 'commissions', 'financial_reports'],
-  profissional: ['dashboard', 'agenda', 'patients', 'availability', 'procedures'],
+  profissional: ['dashboard', 'agenda', 'patients', 'availability', 'procedures', 'consent'],
 };
 
 export function getPermissions(role: string | null): Permission[] {
