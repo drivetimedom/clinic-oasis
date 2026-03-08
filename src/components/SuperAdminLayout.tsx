@@ -37,6 +37,7 @@ import {
   Settings,
   Shield,
   ArrowLeft,
+  Activity,
 } from "lucide-react";
 
 function SuperAdminSidebarContent() {
