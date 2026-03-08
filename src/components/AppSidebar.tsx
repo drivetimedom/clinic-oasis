@@ -19,6 +19,10 @@ import {
   CalendarClock,
   UserX,
   MessageSquare,
+  Target,
+  DollarSign,
+  TrendingUp,
+  PieChart,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
