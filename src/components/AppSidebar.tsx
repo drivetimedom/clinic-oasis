@@ -15,6 +15,7 @@ import {
   Percent,
   FileBarChart,
   FileSignature,
+  UserCog,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
