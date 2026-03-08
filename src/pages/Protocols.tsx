@@ -191,6 +191,10 @@ export default function Protocols() {
                 <Textarea value={steps} onChange={(e) => setSteps(e.target.value)} placeholder="1. Mapeamento facial&#10;2. Diluição&#10;3. Aplicação" rows={5} />
               </div>
               <div className="space-y-2">
+                <Label>Materiais / Insumos</Label>
+                <Textarea value={materials} onChange={(e) => setMaterials(e.target.value)} placeholder="Ex: Toxina botulínica 100U, Seringa 1ml, Agulha 30G..." rows={3} />
+              </div>
+              <div className="space-y-2">
                 <Label>Observações clínicas</Label>
                 <Textarea value={clinicalNotes} onChange={(e) => setClinicalNotes(e.target.value)} placeholder="Cuidados especiais, contraindicações..." rows={3} />
               </div>
