@@ -26,6 +26,7 @@ type Protocol = {
   description: string | null;
   steps: string | null;
   clinical_notes: string | null;
+  materials: string | null;
 };
 
 type Procedure = { id: string; name: string; active: boolean };
