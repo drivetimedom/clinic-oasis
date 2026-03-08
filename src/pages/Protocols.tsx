@@ -100,6 +100,7 @@ export default function Protocols() {
         description: description || null,
         steps: steps || null,
         clinical_notes: clinicalNotes || null,
+        materials: materials || null,
         clinic_id: clinicId!,
       };
       if (editing) {
