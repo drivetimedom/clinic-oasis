@@ -117,6 +117,7 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<AuthRoute />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/consent/sign/:token" element={<ConsentSign />} />
           <Route element={<ProtectedApp />}>
             <Route path="/clinic-setup" element={<ClinicSetup />} />
             {/* Super Admin Routes */}
@@ -147,6 +148,9 @@ const App = () => (
               <Route path="/stock/products" element={<StockProducts />} />
               <Route path="/stock/movements" element={<StockMovements />} />
               <Route path="/stock/batches" element={<StockBatches />} />
+              <Route path="/consent/templates" element={<ConsentTemplates />} />
+              <Route path="/consent/requests" element={<ConsentRequests />} />
+              <Route path="/consent/signatures" element={<ConsentSignatures />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
