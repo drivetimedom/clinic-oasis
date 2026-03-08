@@ -259,6 +259,12 @@ export default function Protocols() {
                             <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-sans">{proto.steps}</pre>
                           </div>
                         )}
+                        {proto.materials && (
+                          <div>
+                            <p className="text-sm font-medium text-foreground">Materiais / Insumos</p>
+                            <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-sans">{proto.materials}</pre>
+                          </div>
+                        )}
                         {proto.clinical_notes && (
                           <div>
                             <p className="text-sm font-medium text-foreground">Observações clínicas</p>
