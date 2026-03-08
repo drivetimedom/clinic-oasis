@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useClinic } from "@/contexts/ClinicContext";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDownCircle, ArrowUpCircle, DollarSign, AlertTriangle, Users, CalendarCheck, TrendingUp, UserPlus, Repeat, Syringe, Stethoscope } from "lucide-react";
+import { TrendingUp, CalendarCheck, UserPlus, Repeat, ArrowDownCircle, ArrowUpCircle, DollarSign, AlertTriangle, Syringe, Stethoscope, ArrowUp } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, subDays, isAfter, isBefore, addDays, startOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -15,7 +15,6 @@ export default function Dashboard() {
   const { currentClinic } = useClinic();
   const clinicId = currentClinic!.id;
 
-  // --- Existing financial queries ---
   const { data: receivables = [] } = useQuery({
     queryKey: ["receivables", clinicId],
     queryFn: async () => {
@@ -32,7 +31,6 @@ export default function Dashboard() {
     },
   });
 
-  // --- Strategic queries ---
   const { data: billings = [] } = useQuery({
     queryKey: ["dashboard-billings", clinicId],
     queryFn: async () => {
@@ -57,7 +55,7 @@ export default function Dashboard() {
     },
   });
 
-  // --- Financial metrics (existing) ---
+  // Financial metrics
   const totalReceivable = receivables.filter(r => r.status === "pending").reduce((s, r) => s + Number(r.amount), 0);
   const totalPayable = payables.filter(p => p.status === "pending").reduce((s, p) => s + Number(p.amount), 0);
   const totalReceived = receivables.filter(r => r.status === "paid").reduce((s, r) => s + Number(r.amount), 0);
@@ -70,39 +68,33 @@ export default function Dashboard() {
     ...payables.filter(p => p.status === "pending" && isAfter(new Date(p.due_date), today) && isBefore(new Date(p.due_date), addDays(today, 7))),
   ];
 
-  // --- Strategic metrics ---
+  // Strategic metrics
   const monthStart = startOfMonth(today).toISOString().split("T")[0];
-
   const monthBillings = billings.filter(b => b.billing_date >= monthStart);
   const monthRevenue = monthBillings.reduce((s, b) => s + Number(b.amount), 0);
-
   const monthProcedures = patientProcedures.filter(p => p.procedure_date >= monthStart);
   const monthAppointments = monthProcedures.length;
-
   const newPatientsMonth = patients.filter(p => p.created_at >= monthStart + "T00:00:00").length;
 
-  // Recurring patients: patients with 2+ procedures
   const patientProcCount: Record<string, number> = {};
   patientProcedures.forEach(p => { patientProcCount[p.patient_id] = (patientProcCount[p.patient_id] || 0) + 1; });
   const totalWithProcs = Object.keys(patientProcCount).length;
   const recurringCount = Object.values(patientProcCount).filter(c => c >= 2).length;
   const recurringPct = totalWithProcs > 0 ? Math.round((recurringCount / totalWithProcs) * 100) : 0;
 
-  // --- Charts: monthly data (last 6 months) ---
+  // Charts
   const monthlyData = Array.from({ length: 6 }, (_, i) => {
     const m = subMonths(today, 5 - i);
     const mStart = format(startOfMonth(m), "yyyy-MM-dd");
     const mEnd = format(startOfMonth(subMonths(m, -1)), "yyyy-MM-dd");
     const label = format(m, "MMM/yy", { locale: ptBR });
-
     const revenue = billings.filter(b => b.billing_date >= mStart && b.billing_date < mEnd).reduce((s, b) => s + Number(b.amount), 0);
     const appointments = patientProcedures.filter(p => p.procedure_date >= mStart && p.procedure_date < mEnd).length;
     const newPatients = patients.filter(p => p.created_at >= mStart + "T00:00:00" && p.created_at < mEnd + "T00:00:00").length;
-
     return { month: label, faturamento: revenue, atendimentos: appointments, novosPacientes: newPatients };
   });
 
-  // --- Top procedures ---
+  // Top procedures
   const procStats: Record<string, { name: string; count: number; revenue: number }> = {};
   patientProcedures.forEach(p => {
     const name = (p.procedures as any)?.name || "—";
@@ -116,7 +108,7 @@ export default function Dashboard() {
   });
   const topProcedures = Object.values(procStats).sort((a, b) => b.count - a.count).slice(0, 5);
 
-  // --- Top professionals ---
+  // Top professionals
   const docStats: Record<string, { name: string; count: number; revenue: number }> = {};
   patientProcedures.forEach(p => {
     const name = (p.doctors as any)?.name || "—";
@@ -130,7 +122,7 @@ export default function Dashboard() {
   });
   const topDoctors = Object.values(docStats).sort((a, b) => b.count - a.count).slice(0, 5);
 
-  // --- Financial chart (existing) ---
+  // Financial chart
   const chartData = Array.from({ length: 30 }, (_, i) => {
     const date = subDays(today, 29 - i);
     const dateStr = format(date, "yyyy-MM-dd");
@@ -139,86 +131,94 @@ export default function Dashboard() {
     return { date: format(date, "dd/MM"), receitas: dayReceived, despesas: dayPaid };
   });
 
-  const financialMetrics = [
-    { title: "A Receber", value: formatCurrency(totalReceivable), icon: ArrowDownCircle, color: "text-emerald-500" },
-    { title: "A Pagar", value: formatCurrency(totalPayable), icon: ArrowUpCircle, color: "text-destructive" },
-    { title: "Saldo", value: formatCurrency(balance), icon: DollarSign, color: balance >= 0 ? "text-emerald-500" : "text-destructive" },
-    { title: "Vencendo em 7d", value: String(upcomingDue.length), icon: AlertTriangle, color: upcomingDue.length > 0 ? "text-yellow-500" : "text-muted-foreground" },
-  ];
+  const tooltipStyle = {
+    backgroundColor: "rgba(0, 0, 0, 0.9)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "12px",
+    padding: "12px",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+    color: "#fff",
+  };
+
+  const axisStyle = { fill: "rgba(255,255,255,0.5)", fontSize: 13 };
+  const gridStroke = "rgba(255,255,255,0.05)";
 
   const strategicMetrics = [
-    { title: "Faturamento do Mês", value: formatCurrency(monthRevenue), icon: TrendingUp, color: "text-emerald-500" },
-    { title: "Atendimentos do Mês", value: String(monthAppointments), icon: CalendarCheck, color: "text-primary" },
-    { title: "Novos Pacientes", value: String(newPatientsMonth), icon: UserPlus, color: "text-blue-500" },
-    { title: "Pacientes Recorrentes", value: `${recurringPct}%`, icon: Repeat, color: "text-purple-500" },
+    { title: "Faturamento do Mês", value: formatCurrency(monthRevenue), icon: TrendingUp, iconBg: "bg-primary/10", iconColor: "text-primary" },
+    { title: "Atendimentos do Mês", value: String(monthAppointments), icon: CalendarCheck, iconBg: "bg-info/10", iconColor: "text-info" },
+    { title: "Novos Pacientes", value: String(newPatientsMonth), icon: UserPlus, iconBg: "bg-info/10", iconColor: "text-info" },
+    { title: "Recorrência", value: `${recurringPct}%`, icon: Repeat, iconBg: "bg-primary/10", iconColor: "text-primary" },
   ];
 
-  const tooltipStyle = { backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", color: "hsl(var(--foreground))" };
+  const financialMetrics = [
+    { title: "A Receber", value: formatCurrency(totalReceivable), icon: ArrowDownCircle, iconBg: "bg-primary/10", iconColor: "text-primary" },
+    { title: "A Pagar", value: formatCurrency(totalPayable), icon: ArrowUpCircle, iconBg: "bg-destructive/10", iconColor: "text-destructive" },
+    { title: "Saldo", value: formatCurrency(balance), icon: DollarSign, iconBg: balance >= 0 ? "bg-primary/10" : "bg-destructive/10", iconColor: balance >= 0 ? "text-primary" : "text-destructive" },
+    { title: "Vencendo em 7d", value: String(upcomingDue.length), icon: AlertTriangle, iconBg: upcomingDue.length > 0 ? "bg-warning/10" : "bg-muted", iconColor: upcomingDue.length > 0 ? "text-warning" : "text-muted-foreground" },
+  ];
+
+  const renderMetricCard = (m: typeof strategicMetrics[0]) => (
+    <Card key={m.title} className="group">
+      <CardContent className="p-6">
+        <div className={`w-10 h-10 rounded-xl ${m.iconBg} flex items-center justify-center mb-4`}>
+          <m.icon className={`w-5 h-5 ${m.iconColor}`} />
+        </div>
+        <p className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide mb-1">
+          {m.title}
+        </p>
+        <p className="text-[32px] font-semibold text-foreground tracking-tight leading-none">
+          {m.value}
+        </p>
+      </CardContent>
+    </Card>
+  );
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard da Clínica</h1>
+    <div className="space-y-8">
+      <h1 className="text-[32px] font-bold tracking-tight">Dashboard</h1>
 
       {/* Strategic KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {strategicMetrics.map((m) => (
-          <Card key={m.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{m.title}</CardTitle>
-              <m.icon className={`h-5 w-5 ${m.color}`} />
-            </CardHeader>
-            <CardContent><p className="text-2xl font-bold">{m.value}</p></CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {strategicMetrics.map(renderMetricCard)}
       </div>
 
       {/* Financial KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {financialMetrics.map((m) => (
-          <Card key={m.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{m.title}</CardTitle>
-              <m.icon className={`h-5 w-5 ${m.color}`} />
-            </CardHeader>
-            <CardContent><p className="text-2xl font-bold">{m.value}</p></CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {financialMetrics.map(renderMetricCard)}
       </div>
 
-      {/* Charts row */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue by month */}
         <Card>
-          <CardHeader><CardTitle className="text-lg">Faturamento por Mês</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Faturamento por Mês</CardTitle></CardHeader>
           <CardContent>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                  <XAxis dataKey="month" tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
+                  <YAxis tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
-                  <Bar dataKey="faturamento" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Faturamento" />
+                  <Bar dataKey="faturamento" fill="hsl(142 69% 58%)" radius={[6, 6, 0, 0]} name="Faturamento" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        {/* Appointments & new patients by month */}
         <Card>
-          <CardHeader><CardTitle className="text-lg">Atendimentos e Novos Pacientes</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Atendimentos e Novos Pacientes</CardTitle></CardHeader>
           <CardContent>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                  <XAxis dataKey="month" tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
+                  <YAxis tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Legend />
-                  <Bar dataKey="atendimentos" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Atendimentos" />
-                  <Bar dataKey="novosPacientes" fill="hsl(217 91% 60%)" radius={[4, 4, 0, 0]} name="Novos Pacientes" />
+                  <Legend wrapperStyle={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }} />
+                  <Bar dataKey="atendimentos" fill="hsl(142 69% 58%)" radius={[6, 6, 0, 0]} name="Atendimentos" />
+                  <Bar dataKey="novosPacientes" fill="hsl(217 91% 60%)" radius={[6, 6, 0, 0]} name="Novos Pacientes" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -226,45 +226,54 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Financial evolution chart */}
+      {/* Financial evolution */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Evolução Financeira (30 dias)</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Evolução Financeira — 30 dias</CardTitle></CardHeader>
         <CardContent>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <defs>
+                  <linearGradient id="colorReceitas" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(142 69% 58%)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="hsl(142 69% 58%)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorDespesas" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(0 84% 60%)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="hsl(0 84% 60%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                <XAxis dataKey="date" tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
+                <YAxis tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
-                <Legend />
-                <Area type="monotone" dataKey="receitas" stroke="hsl(142 69% 58%)" fill="hsl(142 69% 58% / 0.2)" name="Receitas" />
-                <Area type="monotone" dataKey="despesas" stroke="hsl(0 84% 60%)" fill="hsl(0 84% 60% / 0.2)" name="Despesas" />
+                <Legend wrapperStyle={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }} />
+                <Area type="monotone" dataKey="receitas" stroke="hsl(142 69% 58%)" strokeWidth={2.5} fill="url(#colorReceitas)" name="Receitas" dot={false} />
+                <Area type="monotone" dataKey="despesas" stroke="hsl(0 84% 60%)" strokeWidth={2.5} fill="url(#colorDespesas)" name="Despesas" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
 
-      {/* Rankings row */}
+      {/* Rankings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top procedures */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="flex items-center gap-2">
               <Syringe className="h-5 w-5 text-primary" />
               Procedimentos Mais Realizados
             </CardTitle>
           </CardHeader>
           <CardContent>
             {topProcedures.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">Sem dados.</p>
+              <p className="text-muted-foreground text-[13px] text-center py-6">Nenhum dado disponível</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Procedimento</TableHead>
-                    <TableHead className="text-center">Atendimentos</TableHead>
+                    <TableHead className="text-center">Qtd</TableHead>
                     <TableHead className="text-right">Faturamento</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -273,7 +282,7 @@ export default function Dashboard() {
                     <TableRow key={i}>
                       <TableCell className="font-medium">{p.name}</TableCell>
                       <TableCell className="text-center"><Badge variant="secondary">{p.count}</Badge></TableCell>
-                      <TableCell className="text-right">{formatCurrency(p.revenue)}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(p.revenue)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -282,23 +291,22 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Top professionals */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5 text-primary" />
               Desempenho por Profissional
             </CardTitle>
           </CardHeader>
           <CardContent>
             {topDoctors.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">Sem dados.</p>
+              <p className="text-muted-foreground text-[13px] text-center py-6">Nenhum dado disponível</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Profissional</TableHead>
-                    <TableHead className="text-center">Atendimentos</TableHead>
+                    <TableHead className="text-center">Qtd</TableHead>
                     <TableHead className="text-right">Faturamento</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -307,7 +315,7 @@ export default function Dashboard() {
                     <TableRow key={i}>
                       <TableCell className="font-medium">{d.name}</TableCell>
                       <TableCell className="text-center"><Badge variant="secondary">{d.count}</Badge></TableCell>
-                      <TableCell className="text-right">{formatCurrency(d.revenue)}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(d.revenue)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -317,24 +325,24 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Recurring patients card */}
+      {/* Recurring patients */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
+          <CardTitle className="flex items-center gap-2">
             <Repeat className="h-5 w-5 text-primary" />
-            Taxa de Recorrência de Pacientes
+            Taxa de Recorrência
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Pacientes que retornaram (2+ procedimentos)</span>
-              <span className="font-bold text-lg">{recurringPct}%</span>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] text-muted-foreground">Pacientes que retornaram (2+ procedimentos)</span>
+              <span className="text-[32px] font-semibold tracking-tight">{recurringPct}%</span>
             </div>
-            <Progress value={recurringPct} className="h-3" />
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <Progress value={recurringPct} className="h-2" />
+            <div className="flex justify-between text-[13px] text-muted-foreground">
               <span>{recurringCount} recorrentes</span>
-              <span>{totalWithProcs} total com procedimentos</span>
+              <span>{totalWithProcs} total</span>
             </div>
           </div>
         </CardContent>

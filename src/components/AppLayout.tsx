@@ -58,24 +58,24 @@ export function AppLayout() {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           {isSuperAdminMode && (
-            <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-2 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
+            <div className="bg-destructive/10 border-b border-destructive/20 px-6 py-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[13px]">
                 <Shield className="h-4 w-4 text-destructive" />
                 <span className="text-destructive font-medium">
-                  Modo Super Admin — Visualizando: {currentClinic?.name}
+                  Modo Super Admin — {currentClinic?.name}
                 </span>
               </div>
-              <Button variant="outline" size="sm" onClick={exitSuperAdminMode} className="text-xs h-7">
+              <Button variant="outline" size="sm" onClick={exitSuperAdminMode}>
                 Sair do modo clínica
               </Button>
             </div>
           )}
-          <header className="h-14 flex items-center justify-between border-b border-border px-4 shrink-0 bg-card/50">
+          <header className="h-14 flex items-center justify-between border-b border-[hsl(0_0%_100%/0.06)] px-6 shrink-0 bg-[hsl(0_0%_100%/0.02)]">
             <div className="flex items-center gap-3">
-              <SidebarTrigger />
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
               {clinics.length > 1 ? (
                 <Select value={currentClinic?.id || ""} onValueChange={setCurrentClinicId}>
-                  <SelectTrigger className="w-[200px] border-none bg-transparent font-semibold">
+                  <SelectTrigger className="w-[200px] border-none bg-transparent font-semibold text-[15px]">
                     <Building2 className="h-4 w-4 mr-2 text-primary" />
                     <SelectValue />
                   </SelectTrigger>
@@ -88,18 +88,18 @@ export function AppLayout() {
               ) : (
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-primary" />
-                  <span className="font-semibold text-sm">{currentClinic?.name}</span>
+                  <span className="font-semibold text-[15px]">{currentClinic?.name}</span>
                 </div>
               )}
               {role && (
-                <Badge variant="outline" className="text-xs hidden sm:inline-flex">
+                <Badge variant="outline" className="text-[11px] hidden sm:inline-flex">
                   {ROLE_LABELS[role as AppRole] || role}
                 </Badge>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative">
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="relative text-muted-foreground">
                 <Bell className="h-4 w-4" />
               </Button>
 
@@ -107,13 +107,13 @@ export function AppLayout() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2 px-2">
                     <Avatar className="h-7 w-7">
-                      <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-semibold">{initials}</AvatarFallback>
                     </Avatar>
-                    <span className="text-sm hidden sm:inline">{profile?.full_name || user?.email?.split("@")[0]}</span>
+                    <span className="text-[15px] hidden sm:inline text-muted-foreground">{profile?.full_name || user?.email?.split("@")[0]}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel className="text-xs text-muted-foreground">{user?.email}</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-[11px] text-muted-foreground">{user?.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {isSuperAdmin && (
                     <>

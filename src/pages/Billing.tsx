@@ -16,10 +16,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, CheckCircle, XCircle, Search, DollarSign } from "lucide-react";
 
 const statusLabels: Record<string, string> = { pending: "Pendente", paid: "Pago", cancelled: "Cancelado" };
-const statusColors: Record<string, string> = {
-  pending: "bg-warning/20 text-warning",
-  paid: "bg-success/20 text-success",
-  cancelled: "bg-muted text-muted-foreground",
+const statusVariants: Record<string, "warning" | "success" | "secondary"> = {
+  pending: "warning",
+  paid: "success",
+  cancelled: "secondary",
 };
 
 const paymentMethods = [
@@ -252,7 +252,7 @@ export default function Billing() {
                 <TableCell>{b.doctors?.name || "—"}</TableCell>
                 <TableCell>{formatCurrency(Number(b.amount))}</TableCell>
                 <TableCell>{formatCurrency(Number(b.amount_paid))}</TableCell>
-                <TableCell><Badge className={statusColors[b.status] || ""}>{statusLabels[b.status] || b.status}</Badge></TableCell>
+                <TableCell><Badge variant={statusVariants[b.status] || "secondary"}>{statusLabels[b.status] || b.status}</Badge></TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     {b.status === "pending" && (
