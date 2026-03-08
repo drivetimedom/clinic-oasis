@@ -16,6 +16,9 @@ import {
   FileBarChart,
   FileSignature,
   UserCog,
+  CalendarClock,
+  UserX,
+  MessageSquare,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -79,6 +82,12 @@ const teamItems: MenuItem[] = [
   { title: "Profissionais", url: "/team/professionals", icon: UserCog, permission: "team" },
   { title: "Cargos", url: "/team/positions", icon: UserCog, permission: "team" },
   { title: "Comissões", url: "/team/commissions", icon: Percent, permission: "team" },
+];
+
+const crmItems: MenuItem[] = [
+  { title: "Retornos", url: "/crm/return", icon: CalendarClock, permission: "crm" },
+  { title: "Inativos", url: "/crm/inactive", icon: UserX, permission: "crm" },
+  { title: "Histórico", url: "/crm/history", icon: MessageSquare, permission: "crm" },
 ];
 
 export function AppSidebar() {
@@ -155,6 +164,7 @@ export function AppSidebar() {
         {renderGroup("Financeiro", financialItems)}
         {renderGroup("Equipe", teamItems)}
         {renderGroup("Termos e Consentimentos", consentItems)}
+        {renderGroup("CRM de Pacientes", crmItems)}
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>
 
