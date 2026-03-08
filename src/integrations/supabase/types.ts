@@ -453,6 +453,58 @@ export type Database = {
         }
         Relationships: []
       }
+      commission_rules: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          doctor_id: string
+          id: string
+          percentage: number
+          procedure_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          doctor_id: string
+          id?: string
+          percentage?: number
+          procedure_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          percentage?: number
+          procedure_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_rules_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_rules_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_rules_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commissions: {
         Row: {
           billing_date: string
@@ -661,11 +713,14 @@ export type Database = {
           clinic_id: string | null
           color: string
           commission_percentage: number | null
+          cpf: string | null
           created_at: string
           email: string | null
+          hire_date: string | null
           id: string
           name: string
           phone: string | null
+          position_id: string | null
           specialty: string | null
           updated_at: string
           user_id: string
@@ -675,11 +730,14 @@ export type Database = {
           clinic_id?: string | null
           color?: string
           commission_percentage?: number | null
+          cpf?: string | null
           created_at?: string
           email?: string | null
+          hire_date?: string | null
           id?: string
           name: string
           phone?: string | null
+          position_id?: string | null
           specialty?: string | null
           updated_at?: string
           user_id: string
@@ -689,11 +747,14 @@ export type Database = {
           clinic_id?: string | null
           color?: string
           commission_percentage?: number | null
+          cpf?: string | null
           created_at?: string
           email?: string | null
+          hire_date?: string | null
           id?: string
           name?: string
           phone?: string | null
+          position_id?: string | null
           specialty?: string | null
           updated_at?: string
           user_id?: string
@@ -704,6 +765,13 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctors_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
             referencedColumns: ["id"]
           },
         ]
@@ -1046,6 +1114,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "payables_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      positions: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "positions_clinic_id_fkey"
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"

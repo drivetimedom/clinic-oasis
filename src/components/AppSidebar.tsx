@@ -15,6 +15,7 @@ import {
   Percent,
   FileBarChart,
   FileSignature,
+  UserCog,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -72,6 +73,12 @@ const consentItems: MenuItem[] = [
   { title: "Modelos de Termo", url: "/consent/templates", icon: FileSignature, permission: "consent" },
   { title: "Solicitações", url: "/consent/requests", icon: FileSignature, permission: "consent" },
   { title: "Assinaturas", url: "/consent/signatures", icon: FileSignature, permission: "consent" },
+];
+
+const teamItems: MenuItem[] = [
+  { title: "Profissionais", url: "/team/professionals", icon: UserCog, permission: "team" },
+  { title: "Cargos", url: "/team/positions", icon: UserCog, permission: "team" },
+  { title: "Comissões", url: "/team/commissions", icon: Percent, permission: "team" },
 ];
 
 export function AppSidebar() {
@@ -146,6 +153,7 @@ export function AppSidebar() {
         {renderGroup("Procedimentos", procedureItems)}
         {renderGroup("Estoque", stockItems)}
         {renderGroup("Financeiro", financialItems)}
+        {renderGroup("Equipe", teamItems)}
         {renderGroup("Termos e Consentimentos", consentItems)}
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>

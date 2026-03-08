@@ -36,6 +36,9 @@ import ConsentTemplates from "@/pages/ConsentTemplates";
 import ConsentRequests from "@/pages/ConsentRequests";
 import ConsentSignatures from "@/pages/ConsentSignatures";
 import ConsentSign from "@/pages/ConsentSign";
+import TeamProfessionals from "@/pages/TeamProfessionals";
+import Positions from "@/pages/Positions";
+import CommissionConfig from "@/pages/CommissionConfig";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -151,6 +154,9 @@ const App = () => (
               <Route path="/consent/templates" element={<ConsentTemplates />} />
               <Route path="/consent/requests" element={<ConsentRequests />} />
               <Route path="/consent/signatures" element={<ConsentSignatures />} />
+              <Route path="/team/professionals" element={<TeamProfessionals />} />
+              <Route path="/team/positions" element={<Positions />} />
+              <Route path="/team/commissions" element={<CommissionConfig />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
