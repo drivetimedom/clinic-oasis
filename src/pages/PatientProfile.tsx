@@ -86,6 +86,10 @@ export default function PatientProfile() {
           <ClinicalPhotos patientId={id!} />
         </TabsContent>
 
+        <TabsContent value="antes-depois" className="space-y-6 mt-4">
+          <BeforeAfterComparison patientId={id!} />
+        </TabsContent>
+
         <TabsContent value="financeiro" className="mt-4">
           <Card>
             <CardHeader><CardTitle>Histórico Financeiro</CardTitle></CardHeader>
