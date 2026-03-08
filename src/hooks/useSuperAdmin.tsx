@@ -8,12 +8,16 @@ export function useSuperAdmin() {
   const { data: isSuperAdmin = false, isLoading } = useQuery({
     queryKey: ["is_super_admin", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("super_admins")
-        .select("id")
-        .eq("user_id", user!.id)
-        .maybeSingle();
-      return !!data;
+      const { data, error } = await supabase.rpc("is_super_admin", {
+        _user_id: user!.id,
+      });
+
+      if (error) {
+        console.error("Failed to check super admin status:", error);
+        return false;
+      }
+
+      return Boolean(data);
     },
     enabled: !!user,
   });
