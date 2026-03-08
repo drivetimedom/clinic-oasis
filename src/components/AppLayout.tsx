@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useQuery } from "@tanstack/react-query";
 import {
   DropdownMenu,
@@ -24,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Building2, LogOut, Settings, Shield, Bell } from "lucide-react";
+import { Building2, LogOut, Settings, Shield, Bell, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, type AppRole } from "@/lib/permissions";
 
@@ -33,6 +34,7 @@ export function AppLayout() {
   const { user } = useAuth();
   const { isSuperAdmin } = useSuperAdmin();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -99,6 +101,9 @@ export function AppLayout() {
             </div>
 
             <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="relative text-muted-foreground" onClick={toggleTheme} title={theme === "dark" ? "Modo claro" : "Modo escuro"}>
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
               <Button variant="ghost" size="icon" className="relative text-muted-foreground">
                 <Bell className="h-4 w-4" />
               </Button>

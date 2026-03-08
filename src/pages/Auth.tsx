@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { LogIn, UserPlus, Mail } from "lucide-react";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
@@ -15,6 +16,20 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const { data: settings } = useQuery({
+    queryKey: ["platform-settings-public"],
+    queryFn: async () => {
+      const { data } = await supabase.from("platform_settings").select("key, value");
+      const map: Record<string, string> = {};
+      data?.forEach((s: any) => { map[s.key] = s.value; });
+      return map;
+    },
+  });
+
+  const loginTitle = settings?.login_title || "Hof Circle Gestão";
+  const loginSubtitle = settings?.login_subtitle || "Sistema de gestão para clínicas estéticas";
+  const logoText = settings?.logo_text || "HC";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,72 +62,49 @@ export default function Auth() {
     }
   };
 
-  const handleDemo = async () => {
-    setLoading(true);
-    try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: "demo@hofcircle.com",
-        password: "demo123456",
-      });
-      if (signInError) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: "demo@hofcircle.com",
-          password: "demo123456",
-          options: { data: { full_name: "Usuário Demo" } },
-        });
-        if (signUpError) throw signUpError;
-      }
-      navigate("/");
-    } catch (error: any) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
+  const titles = {
+    login: { title: "Acesse sua conta", button: "Entrar", icon: LogIn },
+    register: { title: "Crie sua conta", button: "Criar conta", icon: UserPlus },
+    forgot: { title: "Recuperar senha", button: "Enviar email", icon: Mail },
   };
 
-  const titles = {
-    login: { title: "Entre na sua conta", button: "Entrar" },
-    register: { title: "Crie sua conta", button: "Criar conta" },
-    forgot: { title: "Recuperar senha", button: "Enviar email de recuperação" },
-  };
+  const CurrentIcon = titles[mode].icon;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md border-border">
-        <CardHeader className="text-center">
-          <div className="mx-auto h-12 w-12 rounded-xl bg-primary flex items-center justify-center mb-4">
-            <span className="text-primary-foreground font-bold text-lg">HC</span>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[40%] -right-[20%] w-[60%] h-[60%] rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -bottom-[30%] -left-[20%] w-[50%] h-[50%] rounded-full bg-primary/3 blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo & title */}
+        <div className="text-center mb-8">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-[hsl(142_69%_45%)] flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
+            <span className="text-primary-foreground font-bold text-xl">{logoText}</span>
           </div>
-          <CardTitle className="text-2xl">Hof Circle Gestão</CardTitle>
-          <CardDescription>{titles[mode].title}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {mode !== "forgot" && (
-            <>
-              <div className="mb-6">
-                <Button type="button" variant="outline" className="w-full border-primary/30 hover:bg-primary/10 hover:text-primary" disabled={loading} onClick={handleDemo}>
-                  🚀 Entrar com conta demo
-                </Button>
-                <p className="text-xs text-muted-foreground text-center mt-2">demo@hofcircle.com / demo123456</p>
-              </div>
-              <div className="relative mb-4">
-                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-                <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">ou</span></div>
-              </div>
-            </>
-          )}
+          <h1 className="text-[28px] font-bold tracking-tight text-foreground">{loginTitle}</h1>
+          <p className="text-[15px] text-muted-foreground mt-1">{loginSubtitle}</p>
+        </div>
+
+        {/* Card */}
+        <div className="rounded-2xl border border-[hsl(var(--glass-border))] bg-gradient-to-br from-[hsl(0_0%_100%/0.06)] to-[hsl(0_0%_100%/0.02)] backdrop-blur-xl p-8">
+          <div className="mb-6">
+            <h2 className="text-[18px] font-semibold text-foreground">{titles[mode].title}</h2>
+          </div>
 
           {mode === "forgot" && (
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-[13px] text-muted-foreground mb-6">
               Informe seu email e enviaremos um link para redefinir sua senha.
             </p>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {mode === "register" && (
               <div className="space-y-2">
                 <Label htmlFor="fullName">Nome Completo</Label>
-                <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Seu nome" />
+                <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Seu nome completo" />
               </div>
             )}
             <div className="space-y-2">
@@ -124,7 +116,11 @@ export default function Auth() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Senha</Label>
                   {mode === "login" && (
-                    <button type="button" className="text-xs text-muted-foreground hover:text-primary transition-colors" onClick={() => setMode("forgot")}>
+                    <button
+                      type="button"
+                      className="text-[13px] text-muted-foreground hover:text-primary transition-colors"
+                      onClick={() => setMode("forgot")}
+                    >
                       Esqueceu a senha?
                     </button>
                   )}
@@ -132,23 +128,37 @@ export default function Auth() {
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" minLength={6} />
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11" disabled={loading}>
+              <CurrentIcon className="w-4 h-4" />
               {loading ? "Carregando..." : titles[mode].button}
             </Button>
           </form>
-          <div className="mt-4 text-center space-y-1">
+
+          <div className="mt-6 text-center">
             {mode === "forgot" ? (
-              <button type="button" className="text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setMode("login")}>
+              <button
+                type="button"
+                className="text-[13px] text-muted-foreground hover:text-primary transition-colors"
+                onClick={() => setMode("login")}
+              >
                 Voltar ao login
               </button>
             ) : (
-              <button type="button" className="text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setMode(mode === "login" ? "register" : "login")}>
+              <button
+                type="button"
+                className="text-[13px] text-muted-foreground hover:text-primary transition-colors"
+                onClick={() => setMode(mode === "login" ? "register" : "login")}
+              >
                 {mode === "login" ? "Não tem conta? Criar conta" : "Já tem conta? Entrar"}
               </button>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        <p className="text-[11px] text-muted-foreground/50 text-center mt-6">
+          {loginTitle} &copy; {new Date().getFullYear()}
+        </p>
+      </div>
     </div>
   );
 }

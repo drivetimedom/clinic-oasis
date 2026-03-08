@@ -46,6 +46,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import ActivityLog from "@/pages/admin/ActivityLog";
+import AdminBranding from "@/pages/admin/AdminBranding";
 const queryClient = new QueryClient();
 
 function LoadingScreen() {
@@ -132,6 +133,7 @@ const App = () => (
               <Route path="/admin/clinics" element={<AdminClinics />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/activity" element={<ActivityLog />} />
+              <Route path="/admin/branding" element={<AdminBranding />} />
             </Route>
             {/* Clinic Routes */}
             <Route element={<ClinicGuard />}>

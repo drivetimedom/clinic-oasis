@@ -38,6 +38,7 @@ import {
   Shield,
   ArrowLeft,
   Activity,
+  Palette,
 } from "lucide-react";
 
 function SuperAdminSidebarContent() {
@@ -51,6 +52,7 @@ function SuperAdminSidebarContent() {
     { title: "Clínicas", url: "/admin/clinics", icon: Building2 },
     { title: "Usuários da Plataforma", url: "/admin/users", icon: Users },
     { title: "Atividade do Sistema", url: "/admin/activity", icon: Activity },
+    { title: "Personalização", url: "/admin/branding", icon: Palette },
   ];
 
   return (
