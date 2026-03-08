@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Building2, LogOut, Settings, Shield, Bell } from "lucide-react";
+import { Building2, LogOut, Settings, Shield, Bell, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, type AppRole } from "@/lib/permissions";
 
