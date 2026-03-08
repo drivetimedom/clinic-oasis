@@ -24,6 +24,7 @@ import { Tables } from "@/integrations/supabase/types";
 type Appointment = Tables<"appointments"> & {
   doctors?: { name: string; color: string } | null;
   patients?: { name: string } | null;
+  procedures?: { name: string } | null;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -48,7 +49,7 @@ export default function Agenda() {
   const [detailAppointment, setDetailAppointment] = useState<Appointment | null>(null);
 
   const [form, setForm] = useState({
-    doctor_id: "", patient_id: "", title: "", description: "",
+    doctor_id: "", patient_id: "", procedure_id: "", title: "", description: "",
     appointment_date: new Date(), start_time: "", end_time: "",
     is_recurring: false, recurrence_type: "weekly" as string, recurrence_end_date: null as Date | null,
   });
@@ -73,11 +74,19 @@ export default function Agenda() {
     },
   });
 
+  const { data: clinicProcedures = [] } = useQuery({
+    queryKey: ["procedures_active_agenda", clinicId],
+    queryFn: async () => {
+      const { data } = await supabase.from("procedures").select("id, name").eq("clinic_id", clinicId).eq("active", true).order("name");
+      return data || [];
+    },
+  });
+
   const { data: appointments = [] } = useQuery({
     queryKey: ["appointments", clinicId, format(weekStart, "yyyy-MM-dd"), format(weekEnd, "yyyy-MM-dd")],
     queryFn: async () => {
       const { data } = await supabase
-        .from("appointments").select("*, doctors(name, color), patients(name)")
+        .from("appointments").select("*, doctors(name, color), patients(name), procedures(name)")
         .eq("clinic_id", clinicId)
         .gte("appointment_date", format(weekStart, "yyyy-MM-dd"))
         .lte("appointment_date", format(weekEnd, "yyyy-MM-dd"))
@@ -132,7 +141,7 @@ export default function Agenda() {
         while (cur <= form.recurrence_end_date) {
           items.push({
             user_id: user!.id, clinic_id: clinicId, doctor_id: form.doctor_id,
-            patient_id: form.patient_id || null, title: form.title,
+            patient_id: form.patient_id || null, procedure_id: form.procedure_id || null, title: form.title,
             description: form.description || null, appointment_date: format(cur, "yyyy-MM-dd"),
             start_time: form.start_time, end_time: endTime,
             is_recurring: true, recurrence_type: form.recurrence_type,
@@ -147,7 +156,7 @@ export default function Agenda() {
       } else {
         const { error } = await supabase.from("appointments").insert({
           user_id: user!.id, clinic_id: clinicId, doctor_id: form.doctor_id,
-          patient_id: form.patient_id || null, title: form.title,
+          patient_id: form.patient_id || null, procedure_id: form.procedure_id || null, title: form.title,
           description: form.description || null, appointment_date: dateStr,
           start_time: form.start_time, end_time: endTime,
         });
@@ -157,7 +166,7 @@ export default function Agenda() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       setOpen(false);
-      setForm({ doctor_id: "", patient_id: "", title: "", description: "", appointment_date: new Date(), start_time: "", end_time: "", is_recurring: false, recurrence_type: "weekly", recurrence_end_date: null });
+      setForm({ doctor_id: "", patient_id: "", procedure_id: "", title: "", description: "", appointment_date: new Date(), start_time: "", end_time: "", is_recurring: false, recurrence_type: "weekly", recurrence_end_date: null });
       toast({ title: "Agendamento criado!" });
     },
     onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
@@ -205,6 +214,12 @@ export default function Agenda() {
                   <Select value={form.patient_id} onValueChange={(v) => setForm({ ...form, patient_id: v })}>
                     <SelectTrigger><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
                     <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2"><Label>Procedimento</Label>
+                  <Select value={form.procedure_id} onValueChange={(v) => setForm({ ...form, procedure_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
+                    <SelectContent>{clinicProcedures.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2"><Label>Título *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="Ex: Consulta, Limpeza de pele..." /></div>
@@ -321,6 +336,7 @@ export default function Agenda() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Doutora</span><span>{detailAppointment.doctors?.name}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Paciente</span><span>{detailAppointment.patients?.name || "—"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Procedimento</span><span>{(detailAppointment as any).procedures?.name || "—"}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span>{format(new Date(detailAppointment.appointment_date + "T12:00:00"), "dd/MM/yyyy")}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span>{detailAppointment.start_time.slice(0, 5)} – {detailAppointment.end_time.slice(0, 5)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge className={STATUS_COLORS[detailAppointment.status]}>{STATUS_LABELS[detailAppointment.status]}</Badge></div>

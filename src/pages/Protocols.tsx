@@ -26,6 +26,7 @@ type Protocol = {
   description: string | null;
   steps: string | null;
   clinical_notes: string | null;
+  materials: string | null;
 };
 
 type Procedure = { id: string; name: string; active: boolean };
@@ -41,6 +42,7 @@ export default function Protocols() {
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
+  const [materials, setMaterials] = useState("");
   const [filterProcedure, setFilterProcedure] = useState<string>("all");
 
   const { data: procedures = [] } = useQuery({
@@ -98,6 +100,7 @@ export default function Protocols() {
         description: description || null,
         steps: steps || null,
         clinical_notes: clinicalNotes || null,
+        materials: materials || null,
         clinic_id: clinicId!,
       };
       if (editing) {
@@ -123,6 +126,7 @@ export default function Protocols() {
     setDescription("");
     setSteps("");
     setClinicalNotes("");
+    setMaterials("");
     setProcedureId("");
   };
 
@@ -132,6 +136,7 @@ export default function Protocols() {
     setDescription(proto.description || "");
     setSteps(proto.steps || "");
     setClinicalNotes(proto.clinical_notes || "");
+    setMaterials(proto.materials || "");
     setProcedureId(proto.procedure_id);
     setOpen(true);
   };
@@ -184,6 +189,10 @@ export default function Protocols() {
               <div className="space-y-2">
                 <Label>Passo a passo</Label>
                 <Textarea value={steps} onChange={(e) => setSteps(e.target.value)} placeholder="1. Mapeamento facial&#10;2. Diluição&#10;3. Aplicação" rows={5} />
+              </div>
+              <div className="space-y-2">
+                <Label>Materiais / Insumos</Label>
+                <Textarea value={materials} onChange={(e) => setMaterials(e.target.value)} placeholder="Ex: Toxina botulínica 100U, Seringa 1ml, Agulha 30G..." rows={3} />
               </div>
               <div className="space-y-2">
                 <Label>Observações clínicas</Label>
@@ -248,6 +257,12 @@ export default function Protocols() {
                           <div>
                             <p className="text-sm font-medium text-foreground">Passo a passo</p>
                             <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-sans">{proto.steps}</pre>
+                          </div>
+                        )}
+                        {proto.materials && (
+                          <div>
+                            <p className="text-sm font-medium text-foreground">Materiais / Insumos</p>
+                            <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-sans">{proto.materials}</pre>
                           </div>
                         )}
                         {proto.clinical_notes && (
