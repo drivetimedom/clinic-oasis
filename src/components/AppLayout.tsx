@@ -36,6 +36,7 @@ export function AppLayout() {
   const { isSuperAdmin } = useSuperAdmin();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { isAttendanceMode, toggleAttendanceMode } = useAttendanceMode();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
