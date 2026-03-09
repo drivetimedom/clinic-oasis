@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,8 +15,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ChevronLeft, ChevronRight, CalendarIcon, X, Stethoscope } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Plus, ChevronLeft, ChevronRight, CalendarIcon, Stethoscope, ListChecks } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -29,13 +29,39 @@ type Appointment = Tables<"appointments"> & {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  scheduled: "Agendado", confirmed: "Confirmado", completed: "Concluído",
-  cancelled: "Cancelado", no_show: "Não compareceu",
+  awaiting_confirmation: "Aguardando confirmação",
+  scheduled: "Agendado",
+  confirmed: "Confirmado",
+  in_progress: "Em atendimento",
+  completed: "Finalizado",
+  cancelled: "Cancelado",
+  no_show: "Faltou",
 };
+
 const STATUS_COLORS: Record<string, string> = {
-  scheduled: "bg-info/20 text-info", confirmed: "bg-success/20 text-success",
-  completed: "bg-muted text-muted-foreground", cancelled: "bg-destructive/20 text-destructive",
-  no_show: "bg-warning/20 text-warning",
+  awaiting_confirmation: "bg-warning/20 text-warning",
+  scheduled: "bg-info/20 text-info",
+  confirmed: "bg-success/20 text-success",
+  in_progress: "bg-primary/20 text-primary",
+  completed: "bg-muted text-muted-foreground",
+  cancelled: "bg-destructive/20 text-destructive",
+  no_show: "bg-destructive/20 text-destructive",
+};
+
+const STATUS_BORDER_COLORS: Record<string, string> = {
+  awaiting_confirmation: "hsl(45, 93%, 47%)",
+  scheduled: "hsl(217, 91%, 60%)",
+  confirmed: "hsl(142, 69%, 58%)",
+  in_progress: "hsl(var(--primary))",
+  completed: "hsl(var(--muted-foreground))",
+  cancelled: "hsl(var(--destructive))",
+  no_show: "hsl(var(--destructive))",
+};
+
+type WaitlistEntry = Tables<"waitlist"> & {
+  patients?: { name: string } | null;
+  procedures?: { name: string } | null;
+  doctors?: { name: string } | null;
 };
 
 export default function Agenda() {
@@ -49,6 +75,8 @@ export default function Agenda() {
   const [open, setOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [detailAppointment, setDetailAppointment] = useState<Appointment | null>(null);
+  const [cancelSuggestionOpen, setCancelSuggestionOpen] = useState(false);
+  const [cancellingAppointment, setCancellingAppointment] = useState<Appointment | null>(null);
 
   const [form, setForm] = useState({
     doctor_id: "", patient_id: "", procedure_id: "", title: "", description: "",
@@ -105,6 +133,16 @@ export default function Agenda() {
     },
   });
 
+  const { data: waitlistEntries = [] } = useQuery({
+    queryKey: ["waitlist", clinicId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("waitlist").select("*, patients(name), procedures(name), doctors(name)")
+        .eq("clinic_id", clinicId).eq("status", "waiting").order("created_at");
+      return (data || []) as WaitlistEntry[];
+    },
+  });
+
   const getAvailableSlots = (date: Date, doctorId: string) => {
     const dayOfWeek = date.getDay();
     const doctorSlots = availabilitySlots.filter((s) => s.doctor_id === doctorId && s.day_of_week === dayOfWeek);
@@ -129,7 +167,6 @@ export default function Agenda() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const dateStr = format(form.appointment_date, "yyyy-MM-dd");
       const doctorSlot = availabilitySlots.find((s) => s.doctor_id === form.doctor_id && s.day_of_week === form.appointment_date.getDay());
       const duration = doctorSlot?.slot_duration || 60;
       const [h, m] = form.start_time.split(":").map(Number);
@@ -145,7 +182,7 @@ export default function Agenda() {
             user_id: user!.id, clinic_id: clinicId, doctor_id: form.doctor_id,
             patient_id: form.patient_id || null, procedure_id: form.procedure_id || null, title: form.title,
             description: form.description || null, appointment_date: format(cur, "yyyy-MM-dd"),
-            start_time: form.start_time, end_time: endTime,
+            start_time: form.start_time, end_time: endTime, status: "awaiting_confirmation",
             is_recurring: true, recurrence_type: form.recurrence_type,
             recurrence_end_date: format(form.recurrence_end_date, "yyyy-MM-dd"), recurrence_group_id: groupId,
           });
@@ -159,8 +196,8 @@ export default function Agenda() {
         const { error } = await supabase.from("appointments").insert({
           user_id: user!.id, clinic_id: clinicId, doctor_id: form.doctor_id,
           patient_id: form.patient_id || null, procedure_id: form.procedure_id || null, title: form.title,
-          description: form.description || null, appointment_date: dateStr,
-          start_time: form.start_time, end_time: endTime,
+          description: form.description || null, appointment_date: format(form.appointment_date, "yyyy-MM-dd"),
+          start_time: form.start_time, end_time: endTime, status: "awaiting_confirmation",
         });
         if (error) throw error;
       }
@@ -186,14 +223,66 @@ export default function Agenda() {
     },
   });
 
+  const handleCancelWithSuggestion = (app: Appointment) => {
+    setCancellingAppointment(app);
+    setCancelSuggestionOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    if (!cancellingAppointment) return;
+    await updateStatusMutation.mutateAsync({ id: cancellingAppointment.id, status: "cancelled" });
+    setCancelSuggestionOpen(false);
+    setDetailAppointment(null);
+  };
+
+  const convertWaitlistToAppointment = async (entry: WaitlistEntry) => {
+    if (!cancellingAppointment) return;
+    // Create new appointment from waitlist entry
+    const { error } = await supabase.from("appointments").insert({
+      user_id: user!.id, clinic_id: clinicId,
+      doctor_id: cancellingAppointment.doctor_id,
+      patient_id: entry.patient_id,
+      procedure_id: entry.procedure_id || cancellingAppointment.procedure_id,
+      title: entry.procedures?.name || cancellingAppointment.title,
+      appointment_date: cancellingAppointment.appointment_date,
+      start_time: cancellingAppointment.start_time,
+      end_time: cancellingAppointment.end_time,
+      status: "awaiting_confirmation",
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    // Mark waitlist entry as scheduled
+    await supabase.from("waitlist").update({ status: "scheduled" }).eq("id", entry.id);
+    // Cancel original appointment
+    await supabase.from("appointments").update({ status: "cancelled" }).eq("id", cancellingAppointment.id);
+    queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    queryClient.invalidateQueries({ queryKey: ["waitlist"] });
+    setCancelSuggestionOpen(false);
+    setDetailAppointment(null);
+    toast({ title: "Paciente da lista de espera agendado!" });
+  };
+
+  // Get matching waitlist entries for the cancelling appointment
+  const matchingWaitlist = cancellingAppointment
+    ? waitlistEntries.filter((w) => {
+        const matchDoctor = !w.doctor_id || w.doctor_id === cancellingAppointment.doctor_id;
+        const matchProcedure = !w.procedure_id || w.procedure_id === cancellingAppointment.procedure_id;
+        return matchDoctor && matchProcedure;
+      })
+    : [];
+
   const filteredAppointments = selectedDoctor === "all" ? appointments : appointments.filter((a) => a.doctor_id === selectedDoctor);
   const hours = Array.from({ length: 14 }, (_, i) => i + 7);
+
+  const allStatuses = ["awaiting_confirmation", "scheduled", "confirmed", "in_progress", "completed", "no_show", "cancelled"];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-2xl font-bold">Agenda</h1>
         <div className="flex items-center gap-3">
+          <Link to="/waitlist">
+            <Button variant="outline"><ListChecks className="h-4 w-4 mr-2" />Lista de Espera</Button>
+          </Link>
           <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
             <SelectTrigger className="w-[200px]"><SelectValue placeholder="Todas" /></SelectTrigger>
             <SelectContent>
@@ -277,6 +366,13 @@ export default function Agenda() {
         </div>
       </div>
 
+      {/* Status legend */}
+      <div className="flex flex-wrap gap-2">
+        {["awaiting_confirmation", "confirmed", "in_progress", "completed", "cancelled", "no_show"].map((s) => (
+          <Badge key={s} className={STATUS_COLORS[s]}>{STATUS_LABELS[s]}</Badge>
+        ))}
+      </div>
+
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -310,7 +406,7 @@ export default function Agenda() {
                       {dayApps.map((app) => (
                         <button key={app.id} onClick={() => setDetailAppointment(app)}
                           className="w-full text-left rounded px-1.5 py-0.5 text-xs mb-0.5 truncate border-l-2 cursor-pointer hover:opacity-80 bg-card"
-                          style={{ borderColor: app.doctors?.color || "hsl(var(--primary))" }}>
+                          style={{ borderColor: STATUS_BORDER_COLORS[app.status] || app.doctors?.color || "hsl(var(--primary))" }}>
                           <span className="font-medium">{app.start_time.slice(0, 5)}</span>{" "}
                           <span className="text-muted-foreground">{app.title}</span>
                         </button>
@@ -341,7 +437,7 @@ export default function Agenda() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Procedimento</span><span>{(detailAppointment as any).procedures?.name || "—"}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span>{format(new Date(detailAppointment.appointment_date + "T12:00:00"), "dd/MM/yyyy")}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span>{detailAppointment.start_time.slice(0, 5)} – {detailAppointment.end_time.slice(0, 5)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge className={STATUS_COLORS[detailAppointment.status]}>{STATUS_LABELS[detailAppointment.status]}</Badge></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge className={STATUS_COLORS[detailAppointment.status]}>{STATUS_LABELS[detailAppointment.status] || detailAppointment.status}</Badge></div>
                 {detailAppointment.description && <div><span className="text-muted-foreground">Descrição:</span><p className="mt-1">{detailAppointment.description}</p></div>}
                 {detailAppointment.patient_id && (
                   <Button size="sm" className="w-full" onClick={() => { setDetailAppointment(null); navigate(`/consultation/${detailAppointment.patient_id}`); }}>
@@ -349,15 +445,65 @@ export default function Agenda() {
                   </Button>
                 )}
                 <div className="flex flex-wrap gap-2 pt-2">
-                  {["confirmed", "completed", "no_show", "cancelled"].filter(s => s !== detailAppointment.status).map((s) => (
+                  {allStatuses.filter(s => s !== detailAppointment.status && s !== "cancelled").map((s) => (
                     <Button key={s} size="sm" variant="outline" onClick={() => updateStatusMutation.mutate({ id: detailAppointment.id, status: s })}>
                       {STATUS_LABELS[s]}
                     </Button>
                   ))}
+                  {detailAppointment.status !== "cancelled" && (
+                    <Button size="sm" variant="outline" className="text-destructive border-destructive/30" onClick={() => handleCancelWithSuggestion(detailAppointment)}>
+                      Cancelar
+                    </Button>
+                  )}
                 </div>
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel with waitlist suggestion dialog */}
+      <Dialog open={cancelSuggestionOpen} onOpenChange={setCancelSuggestionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar Agendamento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {matchingWaitlist.length > 0 ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Pacientes da lista de espera compatíveis com este horário:
+                </p>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {matchingWaitlist.map((w) => (
+                    <Card key={w.id} className="p-3 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => convertWaitlistToAppointment(w)}>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium text-sm">{w.patients?.name}</p>
+                          <p className="text-xs text-muted-foreground">{w.procedures?.name || "Qualquer procedimento"}</p>
+                        </div>
+                        <Button size="sm" variant="outline">Agendar</Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+                <div className="border-t border-border pt-3">
+                  <Button variant="destructive" className="w-full" onClick={confirmCancel}>
+                    Cancelar sem substituir
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Nenhum paciente na lista de espera compatível com este horário.
+                </p>
+                <Button variant="destructive" className="w-full" onClick={confirmCancel}>
+                  Confirmar cancelamento
+                </Button>
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

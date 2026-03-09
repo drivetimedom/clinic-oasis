@@ -54,6 +54,7 @@ import AdminUsers from "@/pages/admin/AdminUsers";
 import ActivityLog from "@/pages/admin/ActivityLog";
 import AdminBranding from "@/pages/admin/AdminBranding";
 import Consultation from "@/pages/Consultation";
+import Waitlist from "@/pages/Waitlist";
 const queryClient = new QueryClient();
 
 function LoadingScreen() {
@@ -180,6 +181,7 @@ const App = () => (
               <Route path="/planning/goals" element={<PlanningGoals />} />
               <Route path="/planning/acquisition" element={<AcquisitionMetrics />} />
               <Route path="/consultation/:patientId" element={<Consultation />} />
+              <Route path="/waitlist" element={<Waitlist />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
