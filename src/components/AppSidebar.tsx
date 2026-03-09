@@ -110,6 +110,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { role } = useClinic();
+  const { isAttendanceMode } = useAttendanceMode();
 
   const { data: settings } = useQuery({
     queryKey: ["platform-settings-public"],
