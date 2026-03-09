@@ -187,7 +187,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {hasPermission(role, "dashboard") && (
+              {!isAttendanceMode && hasPermission(role, "dashboard") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/")} tooltip="Dashboard">
                     <NavLink

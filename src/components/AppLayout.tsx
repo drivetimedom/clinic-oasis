@@ -112,6 +112,12 @@ export function AppLayout() {
             </div>
 
             <div className="flex items-center gap-1">
+              {!isAttendanceMode && (
+                <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={toggleAttendanceMode}>
+                  <Stethoscope className="h-4 w-4" />
+                  <span className="hidden sm:inline text-xs">Modo Atendimento</span>
+                </Button>
+              )}
               <Button variant="ghost" size="icon" className="relative text-muted-foreground" onClick={toggleTheme} title={theme === "dark" ? "Modo claro" : "Modo escuro"}>
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
