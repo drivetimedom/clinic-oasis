@@ -64,10 +64,20 @@ export default function Settings() {
 
   const inviteMutation = useMutation({
     mutationFn: async () => {
-      // First check if user exists by trying to find their profile
-      // For now, we create a placeholder - in production this would send an invite email
-      toast({ title: "Funcionalidade de convite", description: "O usuário precisa criar uma conta primeiro. Após isso, adicione-o manualmente pelo ID." });
+      const { data, error } = await supabase.functions.invoke("invite-member", {
+        body: { email: inviteForm.email, role: inviteForm.role, clinic_id: currentClinic!.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clinic_members"] });
+      setInviteOpen(false);
+      setInviteForm({ email: "", role: "reception" });
+      toast({ title: "Membro adicionado com sucesso!" });
+    },
+    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const updateRoleMutation = useMutation({
