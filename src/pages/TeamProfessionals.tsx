@@ -122,7 +122,7 @@ export default function TeamProfessionals() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Profissionais</h1>
         <Dialog open={open} onOpenChange={(v) => { if (!v) closeDialog(); else setOpen(true); }}>
-          <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Novo Profissional</Button></DialogTrigger>
+          <DialogTrigger asChild><Button size="lg" className="gap-2"><Plus className="h-5 w-5" />Criar Membro da Equipe</Button></DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editId ? "Editar Profissional" : "Novo Profissional"}</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(); }} className="space-y-4">
