@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { getPermissions, Permission } from "@/lib/permissions";
+import { getPermissions, getPermissionsWithOverrides, Permission } from "@/lib/permissions";
 
 type Clinic = {
   id: string;
