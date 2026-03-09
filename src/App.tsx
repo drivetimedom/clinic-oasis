@@ -39,6 +39,7 @@ import ConsentSign from "@/pages/ConsentSign";
 import TeamProfessionals from "@/pages/TeamProfessionals";
 import Positions from "@/pages/Positions";
 import CommissionConfig from "@/pages/CommissionConfig";
+import UserProfiles from "@/pages/UserProfiles";
 import CrmReturn from "@/pages/CrmReturn";
 import CrmInactive from "@/pages/CrmInactive";
 import CrmHistory from "@/pages/CrmHistory";
@@ -166,6 +167,7 @@ const App = () => (
               <Route path="/team/professionals" element={<TeamProfessionals />} />
               <Route path="/team/positions" element={<Positions />} />
               <Route path="/team/commissions" element={<CommissionConfig />} />
+              <Route path="/team/profiles" element={<UserProfiles />} />
               <Route path="/crm/return" element={<CrmReturn />} />
               <Route path="/crm/inactive" element={<CrmInactive />} />
               <Route path="/crm/history" element={<CrmHistory />} />

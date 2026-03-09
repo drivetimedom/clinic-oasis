@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { getPermissions, Permission } from "@/lib/permissions";
+import { getPermissions, getPermissionsWithOverrides, Permission } from "@/lib/permissions";
 
 type Clinic = {
   id: string;
@@ -40,6 +40,7 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSuperAdminMode, setIsSuperAdminMode] = useState(false);
+  const [permissionOverrides, setPermissionOverrides] = useState<{ role: string; permission: string; enabled: boolean }[]>([]);
 
   const fetchClinics = useCallback(async () => {
     if (!user) { setIsLoading(false); return; }
@@ -124,8 +125,18 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
     window.location.href = "/admin/clinics";
   }, []);
 
+  // Load permission overrides when clinic changes
+  useEffect(() => {
+    if (!currentClinicId) { setPermissionOverrides([]); return; }
+    supabase
+      .from("clinic_role_permissions")
+      .select("role, permission, enabled")
+      .eq("clinic_id", currentClinicId)
+      .then(({ data }) => setPermissionOverrides(data || []));
+  }, [currentClinicId]);
+
   const currentClinic = clinics.find((c) => c.id === currentClinicId) || null;
-  const permissions = getPermissions(role);
+  const permissions = getPermissionsWithOverrides(role, permissionOverrides);
 
   return (
     <ClinicContext.Provider value={{

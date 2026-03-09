@@ -88,6 +88,7 @@ const teamItems: MenuItem[] = [
   { title: "Profissionais", url: "/team/professionals", icon: UserCog, permission: "team" },
   { title: "Cargos", url: "/team/positions", icon: UserCog, permission: "team" },
   { title: "Comissões", url: "/team/commissions", icon: Percent, permission: "team" },
+  { title: "Perfis de Usuário", url: "/team/profiles", icon: UserCog, permission: "team" },
 ];
 
 const crmItems: MenuItem[] = [

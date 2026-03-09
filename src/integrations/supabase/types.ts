@@ -426,6 +426,44 @@ export type Database = {
           },
         ]
       }
+      clinic_role_permissions: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          permission: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          permission: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          permission?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_role_permissions_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_settings: {
         Row: {
           clinic_id: string
