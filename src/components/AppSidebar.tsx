@@ -207,12 +207,12 @@ export function AppSidebar() {
         </SidebarGroup>
         {renderGroup("Agendamento", agendaItems)}
         {renderGroup("Procedimentos", procedureItems)}
-        {renderGroup("Estoque", stockItems)}
-        {renderGroup("Financeiro", financialItems)}
-        {renderGroup("Planejamento", planningItems)}
-        {renderGroup("Equipe", teamItems)}
+        {!isAttendanceMode && renderGroup("Estoque", stockItems)}
+        {!isAttendanceMode && renderGroup("Financeiro", financialItems)}
+        {!isAttendanceMode && renderGroup("Planejamento", planningItems)}
+        {!isAttendanceMode && renderGroup("Equipe", teamItems)}
         {renderGroup("Termos", consentItems)}
-        {renderGroup("CRM", crmItems)}
+        {!isAttendanceMode && renderGroup("CRM", crmItems)}
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>
 
