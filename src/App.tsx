@@ -167,6 +167,7 @@ const App = () => (
               <Route path="/team/professionals" element={<TeamProfessionals />} />
               <Route path="/team/positions" element={<Positions />} />
               <Route path="/team/commissions" element={<CommissionConfig />} />
+              <Route path="/team/profiles" element={<UserProfiles />} />
               <Route path="/crm/return" element={<CrmReturn />} />
               <Route path="/crm/inactive" element={<CrmInactive />} />
               <Route path="/crm/history" element={<CrmHistory />} />
