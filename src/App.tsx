@@ -70,7 +70,9 @@ function ProtectedApp() {
   if (!user) return <Navigate to="/auth" replace />;
   return (
     <ClinicProvider>
-      <Outlet />
+      <AttendanceModeProvider>
+        <Outlet />
+      </AttendanceModeProvider>
     </ClinicProvider>
   );
 }
