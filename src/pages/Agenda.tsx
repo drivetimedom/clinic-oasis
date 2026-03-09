@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo, useRef, DragEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,18 +6,17 @@ import { useClinic } from "@/contexts/ClinicContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ChevronLeft, ChevronRight, CalendarIcon, Stethoscope, ListChecks } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, CalendarIcon, Stethoscope, ListChecks, Clock, AlertTriangle } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
-import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, addMonths } from "date-fns";
+import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tables } from "@/integrations/supabase/types";
@@ -25,11 +24,25 @@ import { Tables } from "@/integrations/supabase/types";
 type Appointment = Tables<"appointments"> & {
   doctors?: { name: string; color: string } | null;
   patients?: { name: string } | null;
+  procedures?: { name: string; category_id: string; duration_minutes: number | null } | null;
+};
+
+type ProcedureWithCategory = {
+  id: string;
+  name: string;
+  duration_minutes: number | null;
+  category_id: string;
+  procedure_categories?: { color: string; name: string } | null;
+};
+
+type WaitlistEntry = Tables<"waitlist"> & {
+  patients?: { name: string } | null;
   procedures?: { name: string } | null;
+  doctors?: { name: string } | null;
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  awaiting_confirmation: "Aguardando confirmação",
+  awaiting_confirmation: "Aguardando",
   scheduled: "Agendado",
   confirmed: "Confirmado",
   in_progress: "Em atendimento",
@@ -48,21 +61,19 @@ const STATUS_COLORS: Record<string, string> = {
   no_show: "bg-destructive/20 text-destructive",
 };
 
-const STATUS_BORDER_COLORS: Record<string, string> = {
-  awaiting_confirmation: "hsl(45, 93%, 47%)",
-  scheduled: "hsl(217, 91%, 60%)",
-  confirmed: "hsl(142, 69%, 58%)",
-  in_progress: "hsl(var(--primary))",
-  completed: "hsl(var(--muted-foreground))",
-  cancelled: "hsl(var(--destructive))",
-  no_show: "hsl(var(--destructive))",
-};
+const HOUR_HEIGHT = 64; // px per hour
+const HOURS_START = 7;
+const HOURS_END = 21;
+const HOURS = Array.from({ length: HOURS_END - HOURS_START }, (_, i) => i + HOURS_START);
 
-type WaitlistEntry = Tables<"waitlist"> & {
-  patients?: { name: string } | null;
-  procedures?: { name: string } | null;
-  doctors?: { name: string } | null;
-};
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTime(min: number): string {
+  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+}
 
 export default function Agenda() {
   const { user } = useAuth();
@@ -71,22 +82,28 @@ export default function Agenda() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<"day" | "week">("day");
   const [open, setOpen] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [detailAppointment, setDetailAppointment] = useState<Appointment | null>(null);
   const [cancelSuggestionOpen, setCancelSuggestionOpen] = useState(false);
   const [cancellingAppointment, setCancellingAppointment] = useState<Appointment | null>(null);
+  const dragRef = useRef<{ id: string; offsetMin: number } | null>(null);
 
   const [form, setForm] = useState({
     doctor_id: "", patient_id: "", procedure_id: "", title: "", description: "",
-    appointment_date: new Date(), start_time: "", end_time: "",
-    is_recurring: false, recurrence_type: "weekly" as string, recurrence_end_date: null as Date | null,
+    appointment_date: new Date(), start_time: "",
   });
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  const viewDays = viewMode === "week" ? eachDayOfInterval({ start: weekStart, end: weekEnd }) : [currentDate];
+
+  // Date range for query
+  const queryStart = viewMode === "week" ? weekStart : currentDate;
+  const queryEnd = viewMode === "week" ? weekEnd : currentDate;
 
   const { data: doctors = [] } = useQuery({
     queryKey: ["doctors", clinicId],
@@ -105,31 +122,27 @@ export default function Agenda() {
   });
 
   const { data: clinicProcedures = [] } = useQuery({
-    queryKey: ["procedures_active_agenda", clinicId],
+    queryKey: ["procedures_with_categories", clinicId],
     queryFn: async () => {
-      const { data } = await supabase.from("procedures").select("id, name").eq("clinic_id", clinicId).eq("active", true).order("name");
-      return data || [];
+      const { data } = await supabase
+        .from("procedures")
+        .select("id, name, duration_minutes, category_id, procedure_categories(color, name)")
+        .eq("clinic_id", clinicId).eq("active", true).order("name");
+      return (data || []) as ProcedureWithCategory[];
     },
   });
 
   const { data: appointments = [] } = useQuery({
-    queryKey: ["appointments", clinicId, format(weekStart, "yyyy-MM-dd"), format(weekEnd, "yyyy-MM-dd")],
+    queryKey: ["appointments", clinicId, format(queryStart, "yyyy-MM-dd"), format(queryEnd, "yyyy-MM-dd")],
     queryFn: async () => {
       const { data } = await supabase
-        .from("appointments").select("*, doctors(name, color), patients(name), procedures(name)")
+        .from("appointments")
+        .select("*, doctors(name, color), patients(name), procedures(name, category_id, duration_minutes)")
         .eq("clinic_id", clinicId)
-        .gte("appointment_date", format(weekStart, "yyyy-MM-dd"))
-        .lte("appointment_date", format(weekEnd, "yyyy-MM-dd"))
+        .gte("appointment_date", format(queryStart, "yyyy-MM-dd"))
+        .lte("appointment_date", format(queryEnd, "yyyy-MM-dd"))
         .neq("status", "cancelled").order("start_time");
       return (data || []) as Appointment[];
-    },
-  });
-
-  const { data: availabilitySlots = [] } = useQuery({
-    queryKey: ["availability_slots", clinicId],
-    queryFn: async () => {
-      const { data } = await supabase.from("availability_slots").select("*").eq("clinic_id", clinicId).eq("active", true);
-      return data || [];
     },
   });
 
@@ -143,72 +156,108 @@ export default function Agenda() {
     },
   });
 
-  const getAvailableSlots = (date: Date, doctorId: string) => {
-    const dayOfWeek = date.getDay();
-    const doctorSlots = availabilitySlots.filter((s) => s.doctor_id === doctorId && s.day_of_week === dayOfWeek);
-    const timeSlots: string[] = [];
-    doctorSlots.forEach((slot) => {
-      const [startH, startM] = slot.start_time.split(":").map(Number);
-      const [endH, endM] = slot.end_time.split(":").map(Number);
-      const startMin = startH * 60 + startM;
-      const endMin = endH * 60 + endM;
-      for (let m = startMin; m + slot.slot_duration <= endMin; m += slot.slot_duration) {
-        const h = Math.floor(m / 60);
-        const min = m % 60;
-        timeSlots.push(`${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`);
+  // Build a map of procedure category colors
+  const procedureCategoryColorMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    clinicProcedures.forEach((p) => {
+      if (p.procedure_categories?.color) {
+        map[p.id] = p.procedure_categories.color;
       }
     });
-    const dateStr = format(date, "yyyy-MM-dd");
-    const booked = appointments.filter((a) => a.appointment_date === dateStr && a.doctor_id === doctorId);
-    return timeSlots.filter((slot) => !booked.some((a) => a.start_time.slice(0, 5) === slot));
-  };
+    return map;
+  }, [clinicProcedures]);
 
-  const availableSlots = form.doctor_id && form.appointment_date ? getAvailableSlots(form.appointment_date, form.doctor_id) : [];
+  const getAppointmentColor = useCallback((app: Appointment): string => {
+    if (app.procedure_id && procedureCategoryColorMap[app.procedure_id]) {
+      return procedureCategoryColorMap[app.procedure_id];
+    }
+    return app.doctors?.color || "#3b82f6";
+  }, [procedureCategoryColorMap]);
+
+  // Conflict detection
+  const hasConflict = useCallback((doctorId: string, date: string, startTime: string, endTime: string, excludeId?: string): boolean => {
+    const startMin = timeToMinutes(startTime);
+    const endMin = timeToMinutes(endTime);
+    return appointments.some((a) => {
+      if (a.id === excludeId) return false;
+      if (a.doctor_id !== doctorId || a.appointment_date !== date) return false;
+      const aStart = timeToMinutes(a.start_time);
+      const aEnd = timeToMinutes(a.end_time);
+      return startMin < aEnd && endMin > aStart;
+    });
+  }, [appointments]);
+
+  // Auto-calculate end time based on procedure duration
+  const getEndTime = useCallback((startTime: string, procedureId: string | null): string => {
+    if (!startTime) return "";
+    const proc = clinicProcedures.find((p) => p.id === procedureId);
+    const duration = proc?.duration_minutes || 60;
+    const startMin = timeToMinutes(startTime);
+    return minutesToTime(startMin + duration);
+  }, [clinicProcedures]);
+
+  // Selected procedure duration label
+  const selectedProcedureDuration = form.procedure_id
+    ? clinicProcedures.find((p) => p.id === form.procedure_id)?.duration_minutes
+    : null;
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const doctorSlot = availabilitySlots.find((s) => s.doctor_id === form.doctor_id && s.day_of_week === form.appointment_date.getDay());
-      const duration = doctorSlot?.slot_duration || 60;
-      const [h, m] = form.start_time.split(":").map(Number);
-      const endMin = h * 60 + m + duration;
-      const endTime = `${String(Math.floor(endMin / 60)).padStart(2, "0")}:${String(endMin % 60).padStart(2, "0")}`;
+      const endTime = getEndTime(form.start_time, form.procedure_id || null);
+      const dateStr = format(form.appointment_date, "yyyy-MM-dd");
 
-      if (form.is_recurring && form.recurrence_end_date) {
-        const groupId = crypto.randomUUID();
-        const items: any[] = [];
-        let cur = form.appointment_date;
-        while (cur <= form.recurrence_end_date) {
-          items.push({
-            user_id: user!.id, clinic_id: clinicId, doctor_id: form.doctor_id,
-            patient_id: form.patient_id || null, procedure_id: form.procedure_id || null, title: form.title,
-            description: form.description || null, appointment_date: format(cur, "yyyy-MM-dd"),
-            start_time: form.start_time, end_time: endTime, status: "awaiting_confirmation",
-            is_recurring: true, recurrence_type: form.recurrence_type,
-            recurrence_end_date: format(form.recurrence_end_date, "yyyy-MM-dd"), recurrence_group_id: groupId,
-          });
-          if (form.recurrence_type === "weekly") cur = addWeeks(cur, 1);
-          else if (form.recurrence_type === "biweekly") cur = addWeeks(cur, 2);
-          else cur = addMonths(cur, 1);
-        }
-        const { error } = await supabase.from("appointments").insert(items);
+      if (hasConflict(form.doctor_id, dateStr, form.start_time, endTime)) {
+        throw new Error("Conflito de horário! Já existe um agendamento para este profissional neste horário.");
+      }
+
+      if (editingAppointment) {
+        const { error } = await supabase.from("appointments").update({
+          doctor_id: form.doctor_id, patient_id: form.patient_id || null,
+          procedure_id: form.procedure_id || null, title: form.title,
+          description: form.description || null, appointment_date: dateStr,
+          start_time: form.start_time, end_time: endTime,
+        }).eq("id", editingAppointment.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("appointments").insert({
           user_id: user!.id, clinic_id: clinicId, doctor_id: form.doctor_id,
-          patient_id: form.patient_id || null, procedure_id: form.procedure_id || null, title: form.title,
-          description: form.description || null, appointment_date: format(form.appointment_date, "yyyy-MM-dd"),
-          start_time: form.start_time, end_time: endTime, status: "awaiting_confirmation",
+          patient_id: form.patient_id || null, procedure_id: form.procedure_id || null,
+          title: form.title, description: form.description || null,
+          appointment_date: dateStr, start_time: form.start_time, end_time: endTime,
+          status: "awaiting_confirmation",
         });
         if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      setOpen(false);
-      setForm({ doctor_id: "", patient_id: "", procedure_id: "", title: "", description: "", appointment_date: new Date(), start_time: "", end_time: "", is_recurring: false, recurrence_type: "weekly", recurrence_end_date: null });
-      toast({ title: "Agendamento criado!" });
+      closeForm();
+      toast({ title: editingAppointment ? "Agendamento atualizado!" : "Agendamento criado!" });
     },
     onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
+  const moveMutation = useMutation({
+    mutationFn: async ({ id, newDate, newStartTime, newDoctorId }: { id: string; newDate: string; newStartTime: string; newDoctorId: string }) => {
+      const app = appointments.find((a) => a.id === id);
+      if (!app) throw new Error("Agendamento não encontrado");
+      const duration = timeToMinutes(app.end_time) - timeToMinutes(app.start_time);
+      const newEndTime = minutesToTime(timeToMinutes(newStartTime) + duration);
+
+      if (hasConflict(newDoctorId, newDate, newStartTime, newEndTime, id)) {
+        throw new Error("Conflito de horário no novo destino!");
+      }
+
+      const { error } = await supabase.from("appointments").update({
+        appointment_date: newDate, start_time: newStartTime, end_time: newEndTime, doctor_id: newDoctorId,
+      }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      toast({ title: "Agendamento movido!" });
+    },
+    onError: (e: any) => toast({ title: "Erro ao mover", description: e.message, variant: "destructive" }),
   });
 
   const updateStatusMutation = useMutation({
@@ -222,6 +271,25 @@ export default function Agenda() {
       toast({ title: "Status atualizado!" });
     },
   });
+
+  const closeForm = () => {
+    setOpen(false);
+    setEditingAppointment(null);
+    setForm({ doctor_id: "", patient_id: "", procedure_id: "", title: "", description: "", appointment_date: new Date(), start_time: "" });
+  };
+
+  const openEdit = (app: Appointment) => {
+    setEditingAppointment(app);
+    setForm({
+      doctor_id: app.doctor_id, patient_id: app.patient_id || "",
+      procedure_id: app.procedure_id || "", title: app.title,
+      description: app.description || "",
+      appointment_date: new Date(app.appointment_date + "T12:00:00"),
+      start_time: app.start_time.slice(0, 5),
+    });
+    setDetailAppointment(null);
+    setOpen(true);
+  };
 
   const handleCancelWithSuggestion = (app: Appointment) => {
     setCancellingAppointment(app);
@@ -237,22 +305,17 @@ export default function Agenda() {
 
   const convertWaitlistToAppointment = async (entry: WaitlistEntry) => {
     if (!cancellingAppointment) return;
-    // Create new appointment from waitlist entry
     const { error } = await supabase.from("appointments").insert({
       user_id: user!.id, clinic_id: clinicId,
-      doctor_id: cancellingAppointment.doctor_id,
-      patient_id: entry.patient_id,
+      doctor_id: cancellingAppointment.doctor_id, patient_id: entry.patient_id,
       procedure_id: entry.procedure_id || cancellingAppointment.procedure_id,
       title: entry.procedures?.name || cancellingAppointment.title,
       appointment_date: cancellingAppointment.appointment_date,
-      start_time: cancellingAppointment.start_time,
-      end_time: cancellingAppointment.end_time,
+      start_time: cancellingAppointment.start_time, end_time: cancellingAppointment.end_time,
       status: "awaiting_confirmation",
     });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    // Mark waitlist entry as scheduled
     await supabase.from("waitlist").update({ status: "scheduled" }).eq("id", entry.id);
-    // Cancel original appointment
     await supabase.from("appointments").update({ status: "cancelled" }).eq("id", cancellingAppointment.id);
     queryClient.invalidateQueries({ queryKey: ["appointments"] });
     queryClient.invalidateQueries({ queryKey: ["waitlist"] });
@@ -261,7 +324,6 @@ export default function Agenda() {
     toast({ title: "Paciente da lista de espera agendado!" });
   };
 
-  // Get matching waitlist entries for the cancelling appointment
   const matchingWaitlist = cancellingAppointment
     ? waitlistEntries.filter((w) => {
         const matchDoctor = !w.doctor_id || w.doctor_id === cancellingAppointment.doctor_id;
@@ -270,95 +332,167 @@ export default function Agenda() {
       })
     : [];
 
-  const filteredAppointments = selectedDoctor === "all" ? appointments : appointments.filter((a) => a.doctor_id === selectedDoctor);
-  const hours = Array.from({ length: 14 }, (_, i) => i + 7);
+  // Drag and drop handlers
+  const handleDragStart = (e: DragEvent, appId: string, startTime: string) => {
+    e.dataTransfer.setData("text/plain", appId);
+    e.dataTransfer.effectAllowed = "move";
+    dragRef.current = { id: appId, offsetMin: 0 };
+  };
+
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: DragEvent, hour: number, doctorId: string, dateStr: string) => {
+    e.preventDefault();
+    const appId = e.dataTransfer.getData("text/plain");
+    if (!appId) return;
+
+    // Calculate drop position within the hour cell
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const relativeY = e.clientY - rect.top;
+    const quarterSnap = Math.round(relativeY / (HOUR_HEIGHT / 4));
+    const minuteOffset = Math.min(quarterSnap * 15, 45);
+    const newStartTime = minutesToTime(hour * 60 + minuteOffset);
+
+    moveMutation.mutate({ id: appId, newDate: dateStr, newStartTime, newDoctorId: doctorId });
+    dragRef.current = null;
+  };
+
+  // Open form with pre-filled time slot on click
+  const handleSlotClick = (hour: number, doctorId: string, date: Date) => {
+    setForm({
+      ...form,
+      doctor_id: doctorId,
+      appointment_date: date,
+      start_time: minutesToTime(hour * 60),
+    });
+    setEditingAppointment(null);
+    setOpen(true);
+  };
 
   const allStatuses = ["awaiting_confirmation", "scheduled", "confirmed", "in_progress", "completed", "no_show", "cancelled"];
 
+  // Auto-fill title when procedure selected
+  const handleProcedureChange = (procId: string) => {
+    const proc = clinicProcedures.find((p) => p.id === procId);
+    setForm({
+      ...form,
+      procedure_id: procId,
+      title: form.title || proc?.name || "",
+    });
+  };
+
+  // Generate available time slots
+  const availableTimeSlots = useMemo(() => {
+    const slots: string[] = [];
+    for (let h = HOURS_START; h < HOURS_END; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        slots.push(minutesToTime(h * 60 + m));
+      }
+    }
+    return slots;
+  }, []);
+
+  // Check conflict for current form
+  const formEndTime = form.start_time ? getEndTime(form.start_time, form.procedure_id || null) : "";
+  const formConflict = form.doctor_id && form.start_time && formEndTime
+    ? hasConflict(form.doctor_id, format(form.appointment_date, "yyyy-MM-dd"), form.start_time, formEndTime, editingAppointment?.id)
+    : false;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-2xl font-bold">Agenda</h1>
-        <div className="flex items-center gap-3">
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Agenda Inteligente</h1>
+          <p className="text-sm text-muted-foreground">Gerencie atendimentos por profissional</p>
+        </div>
+        <div className="flex items-center gap-2">
           <Link to="/waitlist">
-            <Button variant="outline"><ListChecks className="h-4 w-4 mr-2" />Lista de Espera</Button>
+            <Button variant="outline" size="sm"><ListChecks className="h-4 w-4 mr-2" />Lista de Espera</Button>
           </Link>
-          <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
-            <SelectTrigger className="w-[200px]"><SelectValue placeholder="Todas" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as doutoras</SelectItem>
-              {doctors.map((d) => <SelectItem key={d.id} value={d.id}><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full" style={{ backgroundColor: d.color }} />{d.name}</div></SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Agendar</Button></DialogTrigger>
+          <Dialog open={open} onOpenChange={(v) => { if (!v) closeForm(); else setOpen(true); }}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />Agendar</Button>
+            </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>Novo Agendamento</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editingAppointment ? "Editar Agendamento" : "Novo Agendamento"}</DialogTitle></DialogHeader>
               <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }} className="space-y-4">
-                <div className="space-y-2"><Label>Doutora *</Label>
-                  <Select value={form.doctor_id} onValueChange={(v) => setForm({ ...form, doctor_id: v, start_time: "" })}>
+                <div className="space-y-2">
+                  <Label>Profissional *</Label>
+                  <Select value={form.doctor_id} onValueChange={(v) => setForm({ ...form, doctor_id: v })}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>{doctors.map((d) => <SelectItem key={d.id} value={d.id}><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full" style={{ backgroundColor: d.color }} />{d.name}</div></SelectItem>)}</SelectContent>
+                    <SelectContent>{doctors.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>
+                        <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full" style={{ backgroundColor: d.color }} />{d.name}</div>
+                      </SelectItem>
+                    ))}</SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2"><Label>Paciente</Label>
+                <div className="space-y-2">
+                  <Label>Paciente</Label>
                   <Select value={form.patient_id} onValueChange={(v) => setForm({ ...form, patient_id: v })}>
                     <SelectTrigger><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
                     <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2"><Label>Procedimento</Label>
-                  <Select value={form.procedure_id} onValueChange={(v) => setForm({ ...form, procedure_id: v })}>
+                <div className="space-y-2">
+                  <Label>Procedimento</Label>
+                  <Select value={form.procedure_id} onValueChange={handleProcedureChange}>
                     <SelectTrigger><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
-                    <SelectContent>{clinicProcedures.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                    <SelectContent>{clinicProcedures.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full" style={{ backgroundColor: p.procedure_categories?.color || "#888" }} />
+                          {p.name}
+                          {p.duration_minutes && <span className="text-muted-foreground text-xs">({p.duration_minutes}min)</span>}
+                        </div>
+                      </SelectItem>
+                    ))}</SelectContent>
                   </Select>
+                  {selectedProcedureDuration && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />Duração: {selectedProcedureDuration} min — horário bloqueado automaticamente
+                    </p>
+                  )}
                 </div>
-                <div className="space-y-2"><Label>Título *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="Ex: Consulta, Limpeza de pele..." /></div>
-                <div className="space-y-2"><Label>Data *</Label>
+                <div className="space-y-2"><Label>Título *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="Ex: Consulta, Preenchimento..." /></div>
+                <div className="space-y-2">
+                  <Label>Data *</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.appointment_date && "text-muted-foreground")}>
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal")}>
                         <CalendarIcon className="mr-2 h-4 w-4" />{format(form.appointment_date, "dd/MM/yyyy")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={form.appointment_date} onSelect={(d) => d && setForm({ ...form, appointment_date: d, start_time: "" })} initialFocus className="p-3 pointer-events-auto" />
+                      <Calendar mode="single" selected={form.appointment_date} onSelect={(d) => d && setForm({ ...form, appointment_date: d })} initialFocus className="p-3 pointer-events-auto" />
                     </PopoverContent>
                   </Popover>
                 </div>
-                <div className="space-y-2"><Label>Horário Disponível *</Label>
-                  {!form.doctor_id ? <p className="text-sm text-muted-foreground">Selecione a doutora primeiro</p>
-                  : availableSlots.length === 0 ? <p className="text-sm text-warning">Nenhum horário disponível neste dia</p>
-                  : <div className="grid grid-cols-4 gap-2">{availableSlots.map((slot) => (
-                    <Button key={slot} type="button" variant={form.start_time === slot ? "default" : "outline"} size="sm" onClick={() => setForm({ ...form, start_time: slot })}>{slot}</Button>
-                  ))}</div>}
-                </div>
-                <div className="space-y-2"><Label>Descrição</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} /></div>
-                <div className="space-y-3 border border-border rounded-lg p-3">
-                  <div className="flex items-center gap-2"><Switch checked={form.is_recurring} onCheckedChange={(v) => setForm({ ...form, is_recurring: v })} /><Label>Evento Recorrente</Label></div>
-                  {form.is_recurring && (
-                    <div className="space-y-3">
-                      <Select value={form.recurrence_type} onValueChange={(v) => setForm({ ...form, recurrence_type: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent><SelectItem value="weekly">Semanal</SelectItem><SelectItem value="biweekly">Quinzenal</SelectItem><SelectItem value="monthly">Mensal</SelectItem></SelectContent>
-                      </Select>
-                      <div className="space-y-2"><Label>Repetir até</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.recurrence_end_date && "text-muted-foreground")}>
-                              <CalendarIcon className="mr-2 h-4 w-4" />{form.recurrence_end_date ? format(form.recurrence_end_date, "dd/MM/yyyy") : "Selecione"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={form.recurrence_end_date || undefined} onSelect={(d) => setForm({ ...form, recurrence_end_date: d || null })} disabled={(d) => d < form.appointment_date} initialFocus className="p-3 pointer-events-auto" />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
+                <div className="space-y-2">
+                  <Label>Horário *</Label>
+                  <Select value={form.start_time} onValueChange={(v) => setForm({ ...form, start_time: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o horário" /></SelectTrigger>
+                    <SelectContent className="max-h-60">{availableTimeSlots.map((slot) => (
+                      <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                    ))}</SelectContent>
+                  </Select>
+                  {form.start_time && formEndTime && (
+                    <p className="text-xs text-muted-foreground">{form.start_time} → {formEndTime}</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full" disabled={createMutation.isPending || !form.doctor_id || !form.start_time || !form.title}>
-                  {createMutation.isPending ? "Salvando..." : "Agendar"}
+                {formConflict && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    Conflito! Já existe agendamento para este profissional neste horário.
+                  </div>
+                )}
+                <div className="space-y-2"><Label>Observações</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} /></div>
+                <Button type="submit" className="w-full" disabled={createMutation.isPending || !form.doctor_id || !form.start_time || !form.title || formConflict}>
+                  {createMutation.isPending ? "Salvando..." : editingAppointment ? "Atualizar" : "Agendar"}
                 </Button>
               </form>
             </DialogContent>
@@ -366,57 +500,62 @@ export default function Agenda() {
         </div>
       </div>
 
-      {/* Status legend */}
-      <div className="flex flex-wrap gap-2">
-        {["awaiting_confirmation", "confirmed", "in_progress", "completed", "cancelled", "no_show"].map((s) => (
-          <Badge key={s} className={STATUS_COLORS[s]}>{STATUS_LABELS[s]}</Badge>
-        ))}
+      {/* View toggle + date navigation */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <Button variant={viewMode === "day" ? "default" : "outline"} size="sm" onClick={() => setViewMode("day")}>Dia</Button>
+          <Button variant={viewMode === "week" ? "default" : "outline"} size="sm" onClick={() => setViewMode("week")}>Semana</Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, viewMode === "week" ? -7 : -1))}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <button className="text-sm font-semibold px-3 py-1 rounded-lg hover:bg-accent/50 transition-colors" onClick={() => setCurrentDate(new Date())}>
+            {viewMode === "week"
+              ? `${format(weekStart, "dd MMM", { locale: ptBR })} — ${format(weekEnd, "dd MMM yyyy", { locale: ptBR })}`
+              : format(currentDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+            }
+          </button>
+          <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, viewMode === "week" ? 7 : 1))}>
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+        {/* Status legend */}
+        <div className="flex flex-wrap gap-1.5">
+          {["awaiting_confirmation", "confirmed", "in_progress", "completed", "cancelled"].map((s) => (
+            <Badge key={s} variant="secondary" className={cn("text-[10px] px-1.5 py-0", STATUS_COLORS[s])}>{STATUS_LABELS[s]}</Badge>
+          ))}
+        </div>
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, -7))}><ChevronLeft className="h-5 w-5" /></Button>
-            <div className="text-center">
-              <p className="font-semibold">{format(weekStart, "dd MMM", { locale: ptBR })} — {format(weekEnd, "dd MMM yyyy", { locale: ptBR })}</p>
-              <button className="text-xs text-primary hover:underline" onClick={() => setCurrentDate(new Date())}>Hoje</button>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, 7))}><ChevronRight className="h-5 w-5" /></Button>
-          </div>
-        </CardHeader>
+      {/* Calendar Grid */}
+      <Card className="overflow-hidden">
         <CardContent className="p-0 overflow-x-auto">
-          <div className="min-w-[800px]">
-            <div className="grid grid-cols-8 border-b border-border">
-              <div className="p-2 text-xs text-muted-foreground" />
-              {weekDays.map((day) => (
-                <div key={day.toISOString()} className={cn("p-2 text-center border-l border-border", isSameDay(day, new Date()) && "bg-primary/5")}>
-                  <p className="text-xs text-muted-foreground">{format(day, "EEE", { locale: ptBR })}</p>
-                  <p className={cn("text-sm font-semibold", isSameDay(day, new Date()) && "text-primary")}>{format(day, "dd")}</p>
-                </div>
-              ))}
-            </div>
-            {hours.map((hour) => (
-              <div key={hour} className="grid grid-cols-8 border-b border-border/50 min-h-[60px]">
-                <div className="p-1 text-xs text-muted-foreground text-right pr-2 pt-1">{String(hour).padStart(2, "0")}:00</div>
-                {weekDays.map((day) => {
-                  const dateStr = format(day, "yyyy-MM-dd");
-                  const dayApps = filteredAppointments.filter((a) => a.appointment_date === dateStr && parseInt(a.start_time.split(":")[0]) === hour);
-                  return (
-                    <div key={day.toISOString()} className={cn("border-l border-border/50 p-0.5", isSameDay(day, new Date()) && "bg-primary/5")}>
-                      {dayApps.map((app) => (
-                        <button key={app.id} onClick={() => setDetailAppointment(app)}
-                          className="w-full text-left rounded px-1.5 py-0.5 text-xs mb-0.5 truncate border-l-2 cursor-pointer hover:opacity-80 bg-card"
-                          style={{ borderColor: STATUS_BORDER_COLORS[app.status] || app.doctors?.color || "hsl(var(--primary))" }}>
-                          <span className="font-medium">{app.start_time.slice(0, 5)}</span>{" "}
-                          <span className="text-muted-foreground">{app.title}</span>
-                        </button>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          {viewMode === "day" ? (
+            <DayView
+              date={currentDate}
+              doctors={doctors}
+              appointments={appointments}
+              getAppointmentColor={getAppointmentColor}
+              onAppointmentClick={setDetailAppointment}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onSlotClick={handleSlotClick}
+            />
+          ) : (
+            <WeekView
+              days={viewDays}
+              doctors={doctors}
+              appointments={appointments}
+              getAppointmentColor={getAppointmentColor}
+              onAppointmentClick={setDetailAppointment}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onSlotClick={handleSlotClick}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -427,31 +566,36 @@ export default function Agenda() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: detailAppointment.doctors?.color }} />
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: getAppointmentColor(detailAppointment) }} />
                   {detailAppointment.title}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Doutora</span><span>{detailAppointment.doctors?.name}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Profissional</span><span>{detailAppointment.doctors?.name}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Paciente</span><span>{detailAppointment.patients?.name || "—"}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Procedimento</span><span>{(detailAppointment as any).procedures?.name || "—"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Procedimento</span><span>{detailAppointment.procedures?.name || "—"}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span>{format(new Date(detailAppointment.appointment_date + "T12:00:00"), "dd/MM/yyyy")}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span>{detailAppointment.start_time.slice(0, 5)} – {detailAppointment.end_time.slice(0, 5)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge className={STATUS_COLORS[detailAppointment.status]}>{STATUS_LABELS[detailAppointment.status] || detailAppointment.status}</Badge></div>
-                {detailAppointment.description && <div><span className="text-muted-foreground">Descrição:</span><p className="mt-1">{detailAppointment.description}</p></div>}
-                {detailAppointment.patient_id && (
-                  <Button size="sm" className="w-full" onClick={() => { setDetailAppointment(null); navigate(`/consultation/${detailAppointment.patient_id}`); }}>
-                    <Stethoscope className="h-4 w-4 mr-2" />Iniciar Consulta
-                  </Button>
-                )}
-                <div className="flex flex-wrap gap-2 pt-2">
+                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge className={STATUS_COLORS[detailAppointment.status]}>{STATUS_LABELS[detailAppointment.status]}</Badge></div>
+                {detailAppointment.description && <div><span className="text-muted-foreground">Obs:</span><p className="mt-1">{detailAppointment.description}</p></div>}
+                
+                <div className="flex gap-2 pt-2">
+                  <Button size="sm" variant="outline" onClick={() => openEdit(detailAppointment)} className="flex-1">Editar</Button>
+                  {detailAppointment.patient_id && (
+                    <Button size="sm" className="flex-1" onClick={() => { setDetailAppointment(null); navigate(`/consultation/${detailAppointment.patient_id}`); }}>
+                      <Stethoscope className="h-4 w-4 mr-1" />Consulta
+                    </Button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 pt-1">
                   {allStatuses.filter(s => s !== detailAppointment.status && s !== "cancelled").map((s) => (
-                    <Button key={s} size="sm" variant="outline" onClick={() => updateStatusMutation.mutate({ id: detailAppointment.id, status: s })}>
+                    <Button key={s} size="sm" variant="outline" className="text-xs h-7" onClick={() => updateStatusMutation.mutate({ id: detailAppointment.id, status: s })}>
                       {STATUS_LABELS[s]}
                     </Button>
                   ))}
                   {detailAppointment.status !== "cancelled" && (
-                    <Button size="sm" variant="outline" className="text-destructive border-destructive/30" onClick={() => handleCancelWithSuggestion(detailAppointment)}>
+                    <Button size="sm" variant="outline" className="text-xs h-7 text-destructive border-destructive/30" onClick={() => handleCancelWithSuggestion(detailAppointment)}>
                       Cancelar
                     </Button>
                   )}
@@ -465,15 +609,11 @@ export default function Agenda() {
       {/* Cancel with waitlist suggestion dialog */}
       <Dialog open={cancelSuggestionOpen} onOpenChange={setCancelSuggestionOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cancelar Agendamento</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Cancelar Agendamento</DialogTitle></DialogHeader>
           <div className="space-y-4">
             {matchingWaitlist.length > 0 ? (
               <>
-                <p className="text-sm text-muted-foreground">
-                  Pacientes da lista de espera compatíveis com este horário:
-                </p>
+                <p className="text-sm text-muted-foreground">Pacientes da lista de espera compatíveis:</p>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {matchingWaitlist.map((w) => (
                     <Card key={w.id} className="p-3 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => convertWaitlistToAppointment(w)}>
@@ -488,24 +628,179 @@ export default function Agenda() {
                   ))}
                 </div>
                 <div className="border-t border-border pt-3">
-                  <Button variant="destructive" className="w-full" onClick={confirmCancel}>
-                    Cancelar sem substituir
-                  </Button>
+                  <Button variant="destructive" className="w-full" onClick={confirmCancel}>Cancelar sem substituir</Button>
                 </div>
               </>
             ) : (
               <>
-                <p className="text-sm text-muted-foreground">
-                  Nenhum paciente na lista de espera compatível com este horário.
-                </p>
-                <Button variant="destructive" className="w-full" onClick={confirmCancel}>
-                  Confirmar cancelamento
-                </Button>
+                <p className="text-sm text-muted-foreground">Nenhum paciente compatível na lista de espera.</p>
+                <Button variant="destructive" className="w-full" onClick={confirmCancel}>Confirmar cancelamento</Button>
               </>
             )}
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// ===== Day View Component =====
+function DayView({ date, doctors, appointments, getAppointmentColor, onAppointmentClick, onDragStart, onDragOver, onDrop, onSlotClick }: {
+  date: Date;
+  doctors: any[];
+  appointments: Appointment[];
+  getAppointmentColor: (a: Appointment) => string;
+  onAppointmentClick: (a: Appointment) => void;
+  onDragStart: (e: DragEvent, id: string, startTime: string) => void;
+  onDragOver: (e: DragEvent) => void;
+  onDrop: (e: DragEvent, hour: number, doctorId: string, dateStr: string) => void;
+  onSlotClick: (hour: number, doctorId: string, date: Date) => void;
+}) {
+  const dateStr = format(date, "yyyy-MM-dd");
+  const dayApps = appointments.filter((a) => a.appointment_date === dateStr);
+
+  return (
+    <div className="min-w-[700px]">
+      {/* Doctor headers */}
+      <div className="grid border-b border-border sticky top-0 bg-background z-10" style={{ gridTemplateColumns: `60px repeat(${doctors.length}, 1fr)` }}>
+        <div className="p-2 text-xs text-muted-foreground border-r border-border" />
+        {doctors.map((d) => (
+          <div key={d.id} className="p-2 text-center border-r border-border last:border-r-0">
+            <div className="flex items-center justify-center gap-1.5">
+              <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+              <span className="text-sm font-medium truncate">{d.name}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Time grid */}
+      <div className="relative">
+        {HOURS.map((hour) => (
+          <div key={hour} className="grid border-b border-border/30" style={{ gridTemplateColumns: `60px repeat(${doctors.length}, 1fr)`, height: HOUR_HEIGHT }}>
+            <div className="text-xs text-muted-foreground text-right pr-2 pt-1 border-r border-border">
+              {String(hour).padStart(2, "0")}:00
+            </div>
+            {doctors.map((d) => {
+              const doctorApps = dayApps.filter((a) => a.doctor_id === d.id && Math.floor(timeToMinutes(a.start_time) / 60) === hour);
+              return (
+                <div
+                  key={d.id}
+                  className="relative border-r border-border/30 last:border-r-0 hover:bg-accent/20 transition-colors cursor-pointer"
+                  onDragOver={onDragOver}
+                  onDrop={(e) => onDrop(e, hour, d.id, dateStr)}
+                  onClick={() => onSlotClick(hour, d.id, date)}
+                >
+                  {/* Half-hour line */}
+                  <div className="absolute left-0 right-0 border-t border-border/10" style={{ top: HOUR_HEIGHT / 2 }} />
+                  {dayApps.filter((a) => a.doctor_id === d.id).map((app) => {
+                    const startMin = timeToMinutes(app.start_time);
+                    const endMin = timeToMinutes(app.end_time);
+                    const hourStart = hour * 60;
+                    const hourEnd = (hour + 1) * 60;
+                    // Only render in the cell where the appointment starts
+                    if (startMin < hourStart || startMin >= hourEnd) return null;
+                    const top = ((startMin - HOURS_START * 60) / 60) * HOUR_HEIGHT - (hour - HOURS_START) * HOUR_HEIGHT;
+                    const height = Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 20);
+                    const color = getAppointmentColor(app);
+
+                    return (
+                      <div
+                        key={app.id}
+                        draggable
+                        onDragStart={(e) => onDragStart(e, app.id, app.start_time)}
+                        onClick={(e) => { e.stopPropagation(); onAppointmentClick(app); }}
+                        className="absolute left-0.5 right-0.5 rounded-md px-1.5 py-0.5 overflow-hidden cursor-grab active:cursor-grabbing z-10 hover:ring-2 hover:ring-white/30 transition-shadow"
+                        style={{
+                          top,
+                          height,
+                          backgroundColor: color + "22",
+                          borderLeft: `3px solid ${color}`,
+                        }}
+                      >
+                        <p className="text-[11px] font-semibold truncate" style={{ color }}>{app.start_time.slice(0, 5)} – {app.end_time.slice(0, 5)}</p>
+                        <p className="text-[10px] truncate text-foreground/80">{app.patients?.name || app.title}</p>
+                        {app.procedures?.name && <p className="text-[9px] truncate text-muted-foreground">{app.procedures.name}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ===== Week View Component =====
+function WeekView({ days, doctors, appointments, getAppointmentColor, onAppointmentClick, onDragStart, onDragOver, onDrop, onSlotClick }: {
+  days: Date[];
+  doctors: any[];
+  appointments: Appointment[];
+  getAppointmentColor: (a: Appointment) => string;
+  onAppointmentClick: (a: Appointment) => void;
+  onDragStart: (e: DragEvent, id: string, startTime: string) => void;
+  onDragOver: (e: DragEvent) => void;
+  onDrop: (e: DragEvent, hour: number, doctorId: string, dateStr: string) => void;
+  onSlotClick: (hour: number, doctorId: string, date: Date) => void;
+}) {
+  // In weekly view, show appointments aggregated per day (no doctor columns to keep it manageable)
+  return (
+    <div className="min-w-[800px]">
+      {/* Day headers */}
+      <div className="grid border-b border-border sticky top-0 bg-background z-10" style={{ gridTemplateColumns: `60px repeat(${days.length}, 1fr)` }}>
+        <div className="p-2 text-xs text-muted-foreground border-r border-border" />
+        {days.map((day) => (
+          <div key={day.toISOString()} className={cn("p-2 text-center border-r border-border last:border-r-0", isSameDay(day, new Date()) && "bg-primary/5")}>
+            <p className="text-xs text-muted-foreground capitalize">{format(day, "EEE", { locale: ptBR })}</p>
+            <p className={cn("text-sm font-semibold", isSameDay(day, new Date()) && "text-primary")}>{format(day, "dd")}</p>
+          </div>
+        ))}
+      </div>
+      {/* Time grid */}
+      {HOURS.map((hour) => (
+        <div key={hour} className="grid border-b border-border/30" style={{ gridTemplateColumns: `60px repeat(${days.length}, 1fr)`, minHeight: HOUR_HEIGHT }}>
+          <div className="text-xs text-muted-foreground text-right pr-2 pt-1 border-r border-border">
+            {String(hour).padStart(2, "0")}:00
+          </div>
+          {days.map((day) => {
+            const dateStr = format(day, "yyyy-MM-dd");
+            const hourApps = appointments.filter((a) => a.appointment_date === dateStr && Math.floor(timeToMinutes(a.start_time) / 60) === hour);
+            return (
+              <div
+                key={day.toISOString()}
+                className={cn("border-r border-border/30 last:border-r-0 p-0.5 hover:bg-accent/20 transition-colors cursor-pointer relative", isSameDay(day, new Date()) && "bg-primary/5")}
+                onDragOver={onDragOver}
+                onDrop={(e) => onDrop(e, hour, hourApps[0]?.doctor_id || doctors[0]?.id, dateStr)}
+                onClick={() => onSlotClick(hour, doctors[0]?.id || "", day)}
+              >
+                {hourApps.map((app) => {
+                  const color = getAppointmentColor(app);
+                  return (
+                    <div
+                      key={app.id}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, app.id, app.start_time)}
+                      onClick={(e) => { e.stopPropagation(); onAppointmentClick(app); }}
+                      className="w-full rounded-md px-1.5 py-0.5 mb-0.5 text-xs cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-white/30 transition-shadow"
+                      style={{
+                        backgroundColor: color + "22",
+                        borderLeft: `3px solid ${color}`,
+                      }}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold" style={{ color }}>{app.start_time.slice(0, 5)}</span>
+                        <span className="truncate text-foreground/80">{app.patients?.name || app.title}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }
