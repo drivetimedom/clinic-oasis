@@ -40,6 +40,7 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSuperAdminMode, setIsSuperAdminMode] = useState(false);
+  const [permissionOverrides, setPermissionOverrides] = useState<{ role: string; permission: string; enabled: boolean }[]>([]);
 
   const fetchClinics = useCallback(async () => {
     if (!user) { setIsLoading(false); return; }
