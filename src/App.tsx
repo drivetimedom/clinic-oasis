@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { ClinicProvider, useClinic } from "@/contexts/ClinicContext";
+import { AttendanceModeProvider } from "@/contexts/AttendanceModeContext";
 import { AppLayout } from "@/components/AppLayout";
 import { SuperAdminLayout } from "@/components/SuperAdminLayout";
 import Auth from "@/pages/Auth";
