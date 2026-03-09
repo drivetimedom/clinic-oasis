@@ -125,8 +125,18 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
     window.location.href = "/admin/clinics";
   }, []);
 
+  // Load permission overrides when clinic changes
+  useEffect(() => {
+    if (!currentClinicId) { setPermissionOverrides([]); return; }
+    supabase
+      .from("clinic_role_permissions")
+      .select("role, permission, enabled")
+      .eq("clinic_id", currentClinicId)
+      .then(({ data }) => setPermissionOverrides(data || []));
+  }, [currentClinicId]);
+
   const currentClinic = clinics.find((c) => c.id === currentClinicId) || null;
-  const permissions = getPermissions(role);
+  const permissions = getPermissionsWithOverrides(role, permissionOverrides);
 
   return (
     <ClinicContext.Provider value={{
