@@ -44,6 +44,7 @@ export default function Agenda() {
   const clinicId = currentClinic!.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [open, setOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
