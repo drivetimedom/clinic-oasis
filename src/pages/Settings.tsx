@@ -157,6 +157,37 @@ export default function Settings() {
                 <CardTitle>Equipe</CardTitle>
                 <CardDescription>Membros com acesso a esta clínica</CardDescription>
               </div>
+              {isAdmin && (
+                <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2"><Plus className="h-4 w-4" />Adicionar Membro</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle>Adicionar Membro à Equipe</DialogTitle></DialogHeader>
+                    <form onSubmit={(e) => { e.preventDefault(); inviteMutation.mutate(); }} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Email do usuário</Label>
+                        <Input type="email" value={inviteForm.email} onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })} placeholder="email@exemplo.com" required />
+                        <p className="text-xs text-muted-foreground">O usuário precisa ter uma conta criada no sistema.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Cargo / Papel</Label>
+                        <Select value={inviteForm.role} onValueChange={(v) => setInviteForm({ ...inviteForm, role: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(ROLE_LABELS).map(([key, label]) => (
+                              <SelectItem key={key} value={key}>{label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={inviteMutation.isPending}>
+                        {inviteMutation.isPending ? "Adicionando..." : "Adicionar Membro"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <Table>
