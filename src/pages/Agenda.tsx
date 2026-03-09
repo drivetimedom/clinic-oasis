@@ -15,7 +15,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ChevronLeft, ChevronRight, CalendarIcon, X } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, CalendarIcon, X, Stethoscope } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ export default function Agenda() {
   const clinicId = currentClinic!.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [open, setOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
@@ -341,6 +343,11 @@ export default function Agenda() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span>{detailAppointment.start_time.slice(0, 5)} – {detailAppointment.end_time.slice(0, 5)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge className={STATUS_COLORS[detailAppointment.status]}>{STATUS_LABELS[detailAppointment.status]}</Badge></div>
                 {detailAppointment.description && <div><span className="text-muted-foreground">Descrição:</span><p className="mt-1">{detailAppointment.description}</p></div>}
+                {detailAppointment.patient_id && (
+                  <Button size="sm" className="w-full" onClick={() => { setDetailAppointment(null); navigate(`/consultation/${detailAppointment.patient_id}`); }}>
+                    <Stethoscope className="h-4 w-4 mr-2" />Iniciar Consulta
+                  </Button>
+                )}
                 <div className="flex flex-wrap gap-2 pt-2">
                   {["confirmed", "completed", "no_show", "cancelled"].filter(s => s !== detailAppointment.status).map((s) => (
                     <Button key={s} size="sm" variant="outline" onClick={() => updateStatusMutation.mutate({ id: detailAppointment.id, status: s })}>

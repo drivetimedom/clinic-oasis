@@ -40,6 +40,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useClinic } from "@/contexts/ClinicContext";
+import { useAttendanceMode } from "@/contexts/AttendanceModeContext";
 import { hasPermission, type Permission } from "@/lib/permissions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,6 +110,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { role } = useClinic();
+  const { isAttendanceMode } = useAttendanceMode();
 
   const { data: settings } = useQuery({
     queryKey: ["platform-settings-public"],
@@ -185,7 +187,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {hasPermission(role, "dashboard") && (
+              {!isAttendanceMode && hasPermission(role, "dashboard") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/")} tooltip="Dashboard">
                     <NavLink
@@ -205,12 +207,12 @@ export function AppSidebar() {
         </SidebarGroup>
         {renderGroup("Agendamento", agendaItems)}
         {renderGroup("Procedimentos", procedureItems)}
-        {renderGroup("Estoque", stockItems)}
-        {renderGroup("Financeiro", financialItems)}
-        {renderGroup("Planejamento", planningItems)}
-        {renderGroup("Equipe", teamItems)}
+        {!isAttendanceMode && renderGroup("Estoque", stockItems)}
+        {!isAttendanceMode && renderGroup("Financeiro", financialItems)}
+        {!isAttendanceMode && renderGroup("Planejamento", planningItems)}
+        {!isAttendanceMode && renderGroup("Equipe", teamItems)}
         {renderGroup("Termos", consentItems)}
-        {renderGroup("CRM", crmItems)}
+        {!isAttendanceMode && renderGroup("CRM", crmItems)}
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>
 

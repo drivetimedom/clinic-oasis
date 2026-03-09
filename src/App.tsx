@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { ClinicProvider, useClinic } from "@/contexts/ClinicContext";
+import { AttendanceModeProvider } from "@/contexts/AttendanceModeContext";
 import { AppLayout } from "@/components/AppLayout";
 import { SuperAdminLayout } from "@/components/SuperAdminLayout";
 import Auth from "@/pages/Auth";
@@ -52,6 +53,7 @@ import AdminClinics from "@/pages/admin/AdminClinics";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import ActivityLog from "@/pages/admin/ActivityLog";
 import AdminBranding from "@/pages/admin/AdminBranding";
+import Consultation from "@/pages/Consultation";
 const queryClient = new QueryClient();
 
 function LoadingScreen() {
@@ -68,7 +70,9 @@ function ProtectedApp() {
   if (!user) return <Navigate to="/auth" replace />;
   return (
     <ClinicProvider>
-      <Outlet />
+      <AttendanceModeProvider>
+        <Outlet />
+      </AttendanceModeProvider>
     </ClinicProvider>
   );
 }
@@ -175,6 +179,7 @@ const App = () => (
               <Route path="/planning/pricing" element={<ProcedurePricing />} />
               <Route path="/planning/goals" element={<PlanningGoals />} />
               <Route path="/planning/acquisition" element={<AcquisitionMetrics />} />
+              <Route path="/consultation/:patientId" element={<Consultation />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
