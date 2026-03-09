@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Shield, ShieldCheck } from "lucide-react";
-import { ROLE_LABELS, type AppRole, type Permission } from "@/lib/permissions";
+import { ROLE_LABELS, type AppRole, type Permission, getPermissions as getStaticPermissions } from "@/lib/permissions";
 
 const PERMISSION_GROUPS: { label: string; permissions: { key: Permission; label: string }[] }[] = [
   {
