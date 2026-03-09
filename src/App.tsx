@@ -54,6 +54,7 @@ import AdminUsers from "@/pages/admin/AdminUsers";
 import ActivityLog from "@/pages/admin/ActivityLog";
 import AdminBranding from "@/pages/admin/AdminBranding";
 import Consultation from "@/pages/Consultation";
+import Waitlist from "@/pages/Waitlist";
 const queryClient = new QueryClient();
 
 function LoadingScreen() {
