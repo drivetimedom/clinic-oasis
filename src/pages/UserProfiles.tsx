@@ -101,9 +101,8 @@ export default function UserProfiles() {
     if (role === "admin") return true;
     const override = overrides.find((o) => o.role === role && o.permission === permission);
     if (override) return override.enabled;
-    // Fall back to static defaults
-    const { getPermissions } = require("@/lib/permissions");
-    return getPermissions(role).includes(permission);
+    const { getPermissions } = await import("@/lib/permissions");
+    return getPermissions(role).includes(permission as Permission);
   };
 
   const isAdmin = activeRole === "admin";
