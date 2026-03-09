@@ -49,6 +49,7 @@ type MenuItem = { title: string; url: string; icon: any; permission: Permission 
 
 const agendaItems: MenuItem[] = [
   { title: "Agenda", url: "/agenda", icon: CalendarDays, permission: "agenda" },
+  { title: "Lista de Espera", url: "/waitlist", icon: CalendarClock, permission: "agenda" },
   { title: "Doutoras", url: "/doctors", icon: Stethoscope, permission: "doctors" },
   { title: "Disponibilidade", url: "/availability", icon: Clock, permission: "availability" },
 ];

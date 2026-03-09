@@ -181,6 +181,7 @@ const App = () => (
               <Route path="/planning/goals" element={<PlanningGoals />} />
               <Route path="/planning/acquisition" element={<AcquisitionMetrics />} />
               <Route path="/consultation/:patientId" element={<Consultation />} />
+              <Route path="/waitlist" element={<Waitlist />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
