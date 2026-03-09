@@ -40,6 +40,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useClinic } from "@/contexts/ClinicContext";
+import { useAttendanceMode } from "@/contexts/AttendanceModeContext";
 import { hasPermission, type Permission } from "@/lib/permissions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
