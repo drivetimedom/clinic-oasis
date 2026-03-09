@@ -1825,6 +1825,74 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          desired_date: string | null
+          doctor_id: string | null
+          id: string
+          observation: string | null
+          patient_id: string
+          procedure_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          desired_date?: string | null
+          doctor_id?: string | null
+          id?: string
+          observation?: string | null
+          patient_id: string
+          procedure_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          desired_date?: string | null
+          doctor_id?: string | null
+          id?: string
+          observation?: string | null
+          patient_id?: string
+          procedure_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
