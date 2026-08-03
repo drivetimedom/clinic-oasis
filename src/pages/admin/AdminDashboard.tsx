@@ -99,30 +99,30 @@ export default function AdminDashboard() {
   const patientsByMonth = buildMonthlyData(patients);
 
   const metrics = [
-    { title: "Total de Clínicas", value: String(totalClinics), icon: Building2, color: "text-primary" },
+    { title: "Total de Clínicas", value: String(totalClinics), icon: Building2, color: "text-subtle" },
     { title: "Clínicas Ativas", value: String(activeClinics), icon: Activity, color: "text-primary" },
     { title: "Bloqueadas/Suspensas", value: String(blockedClinics), icon: Ban, color: "text-destructive" },
-    { title: "Total de Pacientes", value: String(patients.length), icon: Users, color: "text-[hsl(var(--info))]" },
-    { title: "Total de Atendimentos", value: String(appointments.length), icon: Stethoscope, color: "text-[hsl(var(--warning))]" },
-    { title: "Total de Usuários", value: String(memberCount), icon: UserCheck, color: "text-primary" },
+    { title: "Total de Pacientes", value: String(patients.length), icon: Users, color: "text-subtle" },
+    { title: "Total de Atendimentos", value: String(appointments.length), icon: Stethoscope, color: "text-subtle" },
+    { title: "Total de Usuários", value: String(memberCount), icon: UserCheck, color: "text-subtle" },
   ];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="page-title">Dashboard da Plataforma</h1>
-        <p className="text-muted-foreground text-sm">Visão geral do Hof Circle Gestão</p>
+        <p className="page-subtitle">Visão geral do Hof Circle Gestão</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {metrics.map((m) => (
           <Card key={m.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">{m.title}</CardTitle>
-              <m.icon className={`h-4 w-4 ${m.color}`} />
+              <CardTitle className="text-[12px] font-medium text-subtle leading-tight">{m.title}</CardTitle>
+              <m.icon className={`h-[15px] w-[15px] shrink-0 ${m.color}`} />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{m.value}</p>
+              <p className="text-[26px] font-semibold tracking-[-0.03em] num leading-none">{m.value}</p>
             </CardContent>
           </Card>
         ))}
@@ -131,7 +131,7 @@ export default function AdminDashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
-          <CardHeader><CardTitle className="text-sm">Novas Clínicas por Mês</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-[13.5px] font-medium">Novas Clínicas por Mês</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={clinicsByMonth}>
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-sm">Atendimentos por Mês</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-[13.5px] font-medium">Atendimentos por Mês</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={appointmentsByMonth}>
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-sm">Crescimento de Pacientes</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-[13.5px] font-medium">Crescimento de Pacientes</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={patientsByMonth}>
