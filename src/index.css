@@ -219,6 +219,13 @@
     line-height: 1.15;
   }
 
+  .page-subtitle {
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: hsl(var(--subtle));
+    margin-top: 4px;
+  }
+
   .num {
     font-variant-numeric: tabular-nums;
   }
