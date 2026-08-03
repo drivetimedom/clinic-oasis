@@ -45,6 +45,12 @@ import { hasPermission, type Permission } from "@/lib/permissions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+const NAV_LINK =
+  "group relative flex items-center gap-3 px-3 py-2 rounded-[10px] text-[13.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] transition-colors duration-[180ms]";
+
+const NAV_ACTIVE =
+  "bg-foreground/[0.06] text-foreground before:absolute before:left-0 before:top-1/2 before:h-4 before:w-[2px] before:-translate-y-1/2 before:rounded-full before:bg-primary [&>svg]:text-primary";
+
 type MenuItem = { title: string; url: string; icon: any; permission: Permission };
 
 const agendaItems: MenuItem[] = [
@@ -136,7 +142,7 @@ export function AppSidebar() {
     if (visible.length === 0) return null;
     return (
       <SidebarGroup key={label}>
-        <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/50 px-3 pt-6 pb-2">
+        <SidebarGroupLabel className="text-[10.5px] font-semibold uppercase tracking-[0.09em] text-subtle px-3 pt-7 pb-2">
           {label}
         </SidebarGroupLabel>
         <SidebarGroupContent>
@@ -147,10 +153,10 @@ export function AppSidebar() {
                   <NavLink
                     to={item.url}
                     end
-                    activeClassName="bg-[hsl(0_0%_100%/0.08)] border border-[hsl(0_0%_100%/0.1)] text-foreground"
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[15px] font-medium text-muted-foreground hover:text-foreground hover:bg-[hsl(0_0%_100%/0.04)] transition-all duration-200"
+                    activeClassName={NAV_ACTIVE}
+                    className={NAV_LINK}
                   >
-                    <item.icon className="h-[18px] w-[18px]" />
+                    <item.icon className="h-[17px] w-[17px] shrink-0 opacity-90" />
                     <span>{item.title}</span>
                   </NavLink>
                 </SidebarMenuButton>
@@ -163,28 +169,28 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="px-6 py-5 border-b border-[hsl(0_0%_100%/0.06)]">
+    <Sidebar collapsible="icon" className="border-r border-border">
+      <SidebarHeader className="px-5 py-5 border-b border-border">
         <div className="flex items-center gap-3">
           {logoUrl ? (
-            <div className="h-8 w-8 rounded-lg border border-border bg-[hsl(0_0%_100%/0.05)] flex items-center justify-center shrink-0 overflow-hidden">
+            <div className="h-8 w-8 rounded-[10px] border border-border bg-foreground/[0.04] flex items-center justify-center shrink-0 overflow-hidden">
               <img src={logoUrl} alt="Logo" className="h-full w-full object-contain" />
             </div>
           ) : (
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(142_69%_45%)] flex items-center justify-center shrink-0">
-              <span className="text-primary-foreground font-bold text-[15px]">{logoText.charAt(0)}</span>
+            <div className="h-8 w-8 rounded-[10px] bg-primary flex items-center justify-center shrink-0">
+              <span className="text-primary-foreground font-semibold text-[14px]">{logoText.charAt(0)}</span>
             </div>
           )}
           {!collapsed && (
             <div>
-              <p className="text-[15px] font-semibold text-foreground">Hof Circle</p>
-              <p className="text-[13px] text-muted-foreground/60">Gestão</p>
+              <p className="text-[13.5px] font-semibold text-foreground leading-tight">Hof Circle</p>
+              <p className="text-[11.5px] text-subtle leading-tight">Gestão</p>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="px-3 py-3 scrollbar-thin">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -194,10 +200,10 @@ export function AppSidebar() {
                     <NavLink
                       to="/"
                       end
-                      activeClassName="bg-[hsl(0_0%_100%/0.08)] border border-[hsl(0_0%_100%/0.1)] text-foreground"
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[15px] font-medium text-muted-foreground hover:text-foreground hover:bg-[hsl(0_0%_100%/0.04)] transition-all duration-200"
+                      activeClassName={NAV_ACTIVE}
+                      className={NAV_LINK}
                     >
-                      <LayoutDashboard className="h-[18px] w-[18px]" />
+                      <LayoutDashboard className="h-[17px] w-[17px] shrink-0 opacity-90" />
                       <span>Dashboard</span>
                     </NavLink>
                   </SidebarMenuButton>
@@ -217,7 +223,7 @@ export function AppSidebar() {
         {renderGroup("Clínica", clinicItems)}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-[hsl(0_0%_100%/0.06)]">
+      <SidebarFooter className="p-3 border-t border-border">
         <SidebarMenu>
           {hasPermission(role, "settings") && (
             <SidebarMenuItem>
@@ -225,10 +231,10 @@ export function AppSidebar() {
                 <NavLink
                   to="/settings"
                   end
-                  activeClassName="bg-[hsl(0_0%_100%/0.08)] border border-[hsl(0_0%_100%/0.1)] text-foreground"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[15px] font-medium text-muted-foreground hover:text-foreground hover:bg-[hsl(0_0%_100%/0.04)] transition-all duration-200"
+                  activeClassName={NAV_ACTIVE}
+                  className={NAV_LINK}
                 >
-                  <Settings className="h-[18px] w-[18px]" />
+                  <Settings className="h-[17px] w-[17px] shrink-0 opacity-90" />
                   <span>Configurações</span>
                 </NavLink>
               </SidebarMenuButton>

@@ -72,7 +72,7 @@ export default function ProcedurePricing() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Precificação de Procedimentos</h1>
+        <h1 className="page-title">Precificação de Procedimentos</h1>
         <p className="text-muted-foreground">Analise a rentabilidade de cada procedimento</p>
       </div>
 
@@ -82,7 +82,7 @@ export default function ProcedurePricing() {
             <CardTitle className="text-sm font-medium">Custo por Hora da Clínica</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fmt(costPerHour)}</div>
+            <div className="num text-[26px] font-semibold tracking-[-0.03em]">{fmt(costPerHour)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -90,7 +90,7 @@ export default function ProcedurePricing() {
             <CardTitle className="text-sm font-medium">Procedimentos Ativos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{procedures.length}</div>
+            <div className="num text-[26px] font-semibold tracking-[-0.03em]">{procedures.length}</div>
           </CardContent>
         </Card>
       </div>

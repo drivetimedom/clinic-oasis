@@ -59,7 +59,7 @@ export default function CrmReturn() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Pacientes para Retorno</h1>
+      <h1 className="page-title">Pacientes para Retorno</h1>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

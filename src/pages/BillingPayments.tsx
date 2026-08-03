@@ -33,7 +33,7 @@ export default function BillingPayments() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Pagamentos</h1>
+      <h1 className="page-title">Pagamentos</h1>
 
       <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Total Recebido</p><p className="text-2xl font-bold text-success">{formatCurrency(total)}</p></CardContent></Card>
 

@@ -66,7 +66,7 @@ export default function AdminUsers() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Usuários da Plataforma</h1>
+        <h1 className="page-title">Usuários da Plataforma</h1>
         <p className="text-muted-foreground text-sm">{admins.length} super admin(s) cadastrado(s)</p>
       </div>
 

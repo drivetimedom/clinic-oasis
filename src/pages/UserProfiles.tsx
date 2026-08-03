@@ -109,7 +109,7 @@ export default function UserProfiles() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Perfis de Usuário</h1>
+        <h1 className="page-title">Perfis de Usuário</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Configure quais módulos cada perfil pode acessar na sua clínica.
         </p>

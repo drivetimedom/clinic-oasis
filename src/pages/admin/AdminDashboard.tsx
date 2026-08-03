@@ -110,7 +110,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Dashboard da Plataforma</h1>
+        <h1 className="page-title">Dashboard da Plataforma</h1>
         <p className="text-muted-foreground text-sm">Visão geral do Hof Circle Gestão</p>
       </div>
 
@@ -135,11 +135,11 @@ export default function AdminDashboard() {
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={clinicsByMonth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 18%)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 100% / 0.05)" />
                 <XAxis dataKey="month" tick={{ fill: "hsl(0 0% 64%)", fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fill: "hsl(0 0% 64%)", fontSize: 12 }} />
                 <Tooltip {...chartTooltipStyle} />
-                <Bar dataKey="count" name="Clínicas" fill="hsl(142 69% 58%)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" name="Clínicas" fill="hsl(25 100% 55%)" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -150,11 +150,11 @@ export default function AdminDashboard() {
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={appointmentsByMonth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 18%)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 100% / 0.05)" />
                 <XAxis dataKey="month" tick={{ fill: "hsl(0 0% 64%)", fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fill: "hsl(0 0% 64%)", fontSize: 12 }} />
                 <Tooltip {...chartTooltipStyle} />
-                <Bar dataKey="count" name="Atendimentos" fill="hsl(45 93% 47%)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" name="Atendimentos" fill="hsl(0 0% 100% / 0.18)" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -165,11 +165,11 @@ export default function AdminDashboard() {
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={patientsByMonth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 18%)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 100% / 0.05)" />
                 <XAxis dataKey="month" tick={{ fill: "hsl(0 0% 64%)", fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fill: "hsl(0 0% 64%)", fontSize: 12 }} />
                 <Tooltip {...chartTooltipStyle} />
-                <Area type="monotone" dataKey="count" name="Pacientes" stroke="hsl(217 91% 60%)" fill="hsl(217 91% 60% / 0.2)" />
+                <Area type="monotone" dataKey="count" name="Pacientes" stroke="hsl(25 100% 55%)" fill="hsl(25 100% 55% / 0.12)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>

@@ -90,7 +90,7 @@ export default function CrmHistory() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Histórico de Relacionamento</h1>
+        <h1 className="page-title">Histórico de Relacionamento</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-1" />Nova Interação</Button>

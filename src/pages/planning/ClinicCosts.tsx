@@ -115,7 +115,7 @@ export default function ClinicCosts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Custos da Clínica</h1>
+          <h1 className="page-title">Custos da Clínica</h1>
           <p className="text-muted-foreground">Gerencie os custos fixos mensais</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -161,7 +161,7 @@ export default function ClinicCosts() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fmt(totalMonthlyCost)}</div>
+            <div className="num text-[26px] font-semibold tracking-[-0.03em]">{fmt(totalMonthlyCost)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -190,7 +190,7 @@ export default function ClinicCosts() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fmt(costPerHour)}</div>
+            <div className="num text-[26px] font-semibold tracking-[-0.03em]">{fmt(costPerHour)}</div>
           </CardContent>
         </Card>
       </div>

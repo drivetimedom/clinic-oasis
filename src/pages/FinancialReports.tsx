@@ -60,7 +60,7 @@ export default function FinancialReports() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Relatórios Financeiros</h1>
+      <h1 className="page-title">Relatórios Financeiros</h1>
 
       <div className="flex gap-4 items-end flex-wrap">
         <div className="space-y-1"><Label>Data inicial</Label><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></div>

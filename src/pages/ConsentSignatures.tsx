@@ -40,7 +40,7 @@ export default function ConsentSignatures() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Assinaturas</h1>
+      <h1 className="page-title">Assinaturas</h1>
 
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

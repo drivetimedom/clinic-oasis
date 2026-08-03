@@ -185,7 +185,7 @@ export default function Billing() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Faturamento</h1>
+        <h1 className="page-title">Faturamento</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Novo Faturamento</Button></DialogTrigger>
           <DialogContent className="max-w-lg">

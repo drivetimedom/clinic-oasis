@@ -107,7 +107,7 @@ export default function CashFlow() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Fluxo de Caixa</h1>
+        <h1 className="page-title">Fluxo de Caixa</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="lg" className="gap-2"><Plus className="h-5 w-5" />Registrar Movimento de Caixa</Button>

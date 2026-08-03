@@ -132,21 +132,22 @@ export default function Dashboard() {
   });
 
   const tooltipStyle = {
-    backgroundColor: "rgba(0, 0, 0, 0.9)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    backgroundColor: "hsl(240 8% 9%)",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: "12px",
-    padding: "12px",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+    padding: "10px 12px",
+    fontSize: 12.5,
+    boxShadow: "0 18px 45px -18px rgba(0,0,0,0.7)",
     color: "#fff",
   };
 
-  const axisStyle = { fill: "rgba(255,255,255,0.5)", fontSize: 13 };
-  const gridStroke = "rgba(255,255,255,0.05)";
+  const axisStyle = { fill: "rgba(255,255,255,0.42)", fontSize: 11.5 };
+  const gridStroke = "rgba(255,255,255,0.045)";
 
   const strategicMetrics = [
     { title: "Faturamento do Mês", value: formatCurrency(monthRevenue), icon: TrendingUp, iconBg: "bg-primary/10", iconColor: "text-primary" },
-    { title: "Atendimentos do Mês", value: String(monthAppointments), icon: CalendarCheck, iconBg: "bg-info/10", iconColor: "text-info" },
-    { title: "Novos Pacientes", value: String(newPatientsMonth), icon: UserPlus, iconBg: "bg-info/10", iconColor: "text-info" },
+    { title: "Atendimentos do Mês", value: String(monthAppointments), icon: CalendarCheck, iconBg: "bg-info/10", iconColor: "text-muted-foreground" },
+    { title: "Novos Pacientes", value: String(newPatientsMonth), icon: UserPlus, iconBg: "bg-info/10", iconColor: "text-muted-foreground" },
     { title: "Recorrência", value: `${recurringPct}%`, icon: Repeat, iconBg: "bg-primary/10", iconColor: "text-primary" },
   ];
 
@@ -160,13 +161,11 @@ export default function Dashboard() {
   const renderMetricCard = (m: typeof strategicMetrics[0]) => (
     <Card key={m.title} className="group">
       <CardContent className="p-6">
-        <div className={`w-10 h-10 rounded-xl ${m.iconBg} flex items-center justify-center mb-4`}>
-          <m.icon className={`w-5 h-5 ${m.iconColor}`} />
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-[12.5px] font-medium text-muted-foreground">{m.title}</p>
+          <m.icon className={`w-4 h-4 ${m.iconColor} opacity-70`} />
         </div>
-        <p className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide mb-1">
-          {m.title}
-        </p>
-        <p className="text-[32px] font-semibold text-foreground tracking-tight leading-none">
+        <p className="num text-[28px] font-semibold text-foreground tracking-[-0.03em] leading-none">
           {m.value}
         </p>
       </CardContent>
@@ -175,15 +174,18 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-[32px] font-bold tracking-tight">Dashboard</h1>
+      <div className="space-y-1">
+        <h1 className="page-title">Dashboard</h1>
+        <p className="text-caption">Visão geral da operação da clínica</p>
+      </div>
 
       {/* Strategic KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {strategicMetrics.map(renderMetricCard)}
       </div>
 
       {/* Financial KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {financialMetrics.map(renderMetricCard)}
       </div>
 
@@ -192,14 +194,14 @@ export default function Dashboard() {
         <Card>
           <CardHeader><CardTitle>Faturamento por Mês</CardTitle></CardHeader>
           <CardContent>
-            <div className="h-[280px]">
+            <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                  <XAxis dataKey="month" tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
-                  <YAxis tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
+                  <XAxis dataKey="month" tick={axisStyle} axisLine={false} tickLine={false} />
+                  <YAxis tick={axisStyle} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
-                  <Bar dataKey="faturamento" fill="hsl(142 69% 58%)" radius={[6, 6, 0, 0]} name="Faturamento" />
+                  <Bar dataKey="faturamento" fill="hsl(25 100% 55%)" radius={[4, 4, 0, 0]} name="Faturamento" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -209,16 +211,16 @@ export default function Dashboard() {
         <Card>
           <CardHeader><CardTitle>Atendimentos e Novos Pacientes</CardTitle></CardHeader>
           <CardContent>
-            <div className="h-[280px]">
+            <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                  <XAxis dataKey="month" tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
-                  <YAxis tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
+                  <XAxis dataKey="month" tick={axisStyle} axisLine={false} tickLine={false} />
+                  <YAxis tick={axisStyle} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }} />
-                  <Bar dataKey="atendimentos" fill="hsl(142 69% 58%)" radius={[6, 6, 0, 0]} name="Atendimentos" />
-                  <Bar dataKey="novosPacientes" fill="hsl(217 91% 60%)" radius={[6, 6, 0, 0]} name="Novos Pacientes" />
+                  <Legend wrapperStyle={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }} />
+                  <Bar dataKey="atendimentos" fill="hsl(25 100% 55%)" radius={[4, 4, 0, 0]} name="Atendimentos" />
+                  <Bar dataKey="novosPacientes" fill="hsl(240 5% 45%)" radius={[4, 4, 0, 0]} name="Novos Pacientes" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -230,26 +232,26 @@ export default function Dashboard() {
       <Card>
         <CardHeader><CardTitle>Evolução Financeira — 30 dias</CardTitle></CardHeader>
         <CardContent>
-          <div className="h-[280px]">
+          <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorReceitas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(142 69% 58%)" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(142 69% 58%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(25 100% 55%)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="hsl(25 100% 55%)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorDespesas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(0 84% 60%)" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(0 84% 60%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(0 72% 55%)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="hsl(0 72% 55%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                <XAxis dataKey="date" tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
-                <YAxis tick={axisStyle} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
+                <XAxis dataKey="date" tick={axisStyle} axisLine={false} tickLine={false} />
+                <YAxis tick={axisStyle} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
-                <Legend wrapperStyle={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }} />
-                <Area type="monotone" dataKey="receitas" stroke="hsl(142 69% 58%)" strokeWidth={2.5} fill="url(#colorReceitas)" name="Receitas" dot={false} />
-                <Area type="monotone" dataKey="despesas" stroke="hsl(0 84% 60%)" strokeWidth={2.5} fill="url(#colorDespesas)" name="Despesas" dot={false} />
+                <Legend wrapperStyle={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }} />
+                <Area type="monotone" dataKey="receitas" stroke="hsl(25 100% 55%)" strokeWidth={2} fill="url(#colorReceitas)" name="Receitas" dot={false} />
+                <Area type="monotone" dataKey="despesas" stroke="hsl(0 72% 55%)" strokeWidth={2} fill="url(#colorDespesas)" name="Despesas" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -261,7 +263,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Syringe className="h-5 w-5 text-primary" />
+              <Syringe className="h-4 w-4 text-subtle" />
               Procedimentos Mais Realizados
             </CardTitle>
           </CardHeader>
@@ -294,7 +296,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Stethoscope className="h-5 w-5 text-primary" />
+              <Stethoscope className="h-4 w-4 text-subtle" />
               Desempenho por Profissional
             </CardTitle>
           </CardHeader>
@@ -329,7 +331,7 @@ export default function Dashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Repeat className="h-5 w-5 text-primary" />
+            <Repeat className="h-4 w-4 text-subtle" />
             Taxa de Recorrência
           </CardTitle>
         </CardHeader>
@@ -337,7 +339,7 @@ export default function Dashboard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-[13px] text-muted-foreground">Pacientes que retornaram (2+ procedimentos)</span>
-              <span className="text-[32px] font-semibold tracking-tight">{recurringPct}%</span>
+              <span className="num text-[28px] font-semibold tracking-[-0.03em]">{recurringPct}%</span>
             </div>
             <Progress value={recurringPct} className="h-2" />
             <div className="flex justify-between text-[13px] text-muted-foreground">
