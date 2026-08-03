@@ -105,7 +105,7 @@ export default function Settings() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Configurações</h1>
+      <h1 className="page-title">Configurações</h1>
 
       <Tabs defaultValue="clinic" className="space-y-4">
         <TabsList>

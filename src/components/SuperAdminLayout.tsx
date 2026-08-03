@@ -56,31 +56,36 @@ function SuperAdminSidebarContent() {
   ];
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
+    <Sidebar collapsible="icon" className="border-r border-border">
+      <SidebarHeader className="px-5 py-5 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-destructive flex items-center justify-center shrink-0">
-            <Shield className="h-4 w-4 text-destructive-foreground" />
+          <div className="h-8 w-8 rounded-[10px] bg-destructive/15 border border-destructive/25 flex items-center justify-center shrink-0">
+            <Shield className="h-4 w-4 text-destructive" />
           </div>
           {!collapsed && (
             <div>
-              <h1 className="text-sm font-bold text-foreground">Hof Circle</h1>
-              <p className="text-xs text-muted-foreground">Super Admin</p>
+              <h1 className="text-[13.5px] font-semibold text-foreground leading-tight">Hof Circle</h1>
+              <p className="text-[11.5px] text-subtle leading-tight">Super Admin</p>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-3 py-3 scrollbar-thin">
         <SidebarGroup>
-          <SidebarGroupLabel>Plataforma</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10.5px] font-semibold uppercase tracking-[0.09em] text-subtle px-3 pt-4 pb-2">Plataforma</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <NavLink to={item.url} end activeClassName="bg-sidebar-accent text-primary font-medium">
-                      <item.icon className="h-4 w-4" />
+                    <NavLink
+                      to={item.url}
+                      end
+                      className="group relative flex items-center gap-3 px-3 py-2 rounded-[10px] text-[13.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] transition-colors duration-[180ms]"
+                      activeClassName="bg-foreground/[0.06] text-foreground before:absolute before:left-0 before:top-1/2 before:h-4 before:w-[2px] before:-translate-y-1/2 before:rounded-full before:bg-primary [&>svg]:text-primary"
+                    >
+                      <item.icon className="h-[17px] w-[17px] shrink-0 opacity-90" />
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
@@ -91,12 +96,12 @@ function SuperAdminSidebarContent() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="p-3 border-t border-border">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Voltar ao sistema">
-              <NavLink to="/" end activeClassName="">
-                <ArrowLeft className="h-4 w-4" />
+              <NavLink to="/" end activeClassName="" className="flex items-center gap-3 px-3 py-2 rounded-[10px] text-[13.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] transition-colors duration-[180ms]">
+                <ArrowLeft className="h-[17px] w-[17px]" />
                 <span>Voltar ao sistema</span>
               </NavLink>
             </SidebarMenuButton>
@@ -134,28 +139,28 @@ export function SuperAdminLayout() {
       <div className="min-h-screen flex w-full">
         <SuperAdminSidebarContent />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center justify-between border-b border-border px-4 shrink-0 bg-card/50">
+          <header className="h-[58px] flex items-center justify-between border-b border-border px-5 shrink-0 bg-surface/60 sticky top-0 z-30 backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <SidebarTrigger />
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-destructive" />
-                <span className="font-semibold text-sm">Painel Super Admin</span>
+                <span className="font-medium text-[13.5px]">Painel Super Admin</span>
               </div>
-              <Badge variant="destructive" className="text-xs">Super Admin</Badge>
+              <Badge variant="destructive" className="text-[10.5px]">Super Admin</Badge>
             </div>
 
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="gap-2 px-2">
-                    <Avatar className="h-7 w-7">
-                      <AvatarFallback className="bg-destructive/10 text-destructive text-xs">{initials}</AvatarFallback>
+                  <Button variant="ghost" size="sm" className="gap-2 px-1.5">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="bg-destructive/12 text-destructive text-[10.5px] font-semibold">{initials}</AvatarFallback>
                     </Avatar>
-                    <span className="text-sm hidden sm:inline">{profile?.full_name || user?.email?.split("@")[0]}</span>
+                    <span className="text-[13px] hidden sm:inline max-w-[130px] truncate">{profile?.full_name || user?.email?.split("@")[0]}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel className="text-xs text-muted-foreground">{user?.email}</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="text-[11.5px] font-normal text-subtle">{user?.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate("/")}>
                     <ArrowLeft className="h-4 w-4 mr-2" />Voltar ao sistema
@@ -168,8 +173,10 @@ export function SuperAdminLayout() {
               </DropdownMenu>
             </div>
           </header>
-          <main className="flex-1 overflow-auto p-6 scrollbar-thin">
-            <Outlet />
+          <main className="flex-1 overflow-auto scrollbar-thin">
+            <div className="mx-auto w-full max-w-[1400px] px-8 py-8 animate-fade-in">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

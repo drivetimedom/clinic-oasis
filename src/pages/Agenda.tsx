@@ -406,8 +406,8 @@ export default function Agenda() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Agenda Inteligente</h1>
-          <p className="text-sm text-muted-foreground">Gerencie atendimentos por profissional</p>
+          <h1 className="page-title">Agenda Inteligente</h1>
+          <p className="page-subtitle">Gerencie atendimentos por profissional</p>
         </div>
         <div className="flex items-center gap-2">
           <Link to="/waitlist">
@@ -502,22 +502,32 @@ export default function Agenda() {
 
       {/* View toggle + date navigation */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          <Button variant={viewMode === "day" ? "default" : "outline"} size="sm" onClick={() => setViewMode("day")}>Dia</Button>
-          <Button variant={viewMode === "week" ? "default" : "outline"} size="sm" onClick={() => setViewMode("week")}>Semana</Button>
+        <div className="inline-flex items-center gap-0.5 p-0.5 rounded-[10px] bg-foreground/[0.04] border border-border">
+          {([["day", "Dia"], ["week", "Semana"]] as const).map(([mode, label]) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={cn(
+                "px-3 py-1 text-[12.5px] font-medium rounded-[8px] transition-colors duration-[180ms]",
+                viewMode === mode ? "bg-foreground/[0.08] text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, viewMode === "week" ? -7 : -1))}>
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <button className="text-sm font-semibold px-3 py-1 rounded-lg hover:bg-accent/50 transition-colors" onClick={() => setCurrentDate(new Date())}>
+          <button className="text-[13.5px] font-medium px-3 py-1.5 rounded-[10px] hover:bg-foreground/[0.05] transition-colors duration-[180ms] capitalize" onClick={() => setCurrentDate(new Date())}>
             {viewMode === "week"
               ? `${format(weekStart, "dd MMM", { locale: ptBR })} — ${format(weekEnd, "dd MMM yyyy", { locale: ptBR })}`
               : format(currentDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })
             }
           </button>
           <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addDays(currentDate, viewMode === "week" ? 7 : 1))}>
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
         {/* Status legend */}
@@ -662,13 +672,13 @@ function DayView({ date, doctors, appointments, getAppointmentColor, onAppointme
   return (
     <div className="min-w-[700px]">
       {/* Doctor headers */}
-      <div className="grid border-b border-border sticky top-0 bg-background z-10" style={{ gridTemplateColumns: `60px repeat(${doctors.length}, 1fr)` }}>
-        <div className="p-2 text-xs text-muted-foreground border-r border-border" />
+      <div className="grid border-b border-border sticky top-0 bg-surface/90 backdrop-blur-sm z-10" style={{ gridTemplateColumns: `60px repeat(${doctors.length}, 1fr)` }}>
+        <div className="p-2.5 border-r border-border" />
         {doctors.map((d) => (
-          <div key={d.id} className="p-2 text-center border-r border-border last:border-r-0">
-            <div className="flex items-center justify-center gap-1.5">
-              <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-              <span className="text-sm font-medium truncate">{d.name}</span>
+          <div key={d.id} className="p-2.5 text-center border-r border-border last:border-r-0">
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+              <span className="text-[12.5px] font-medium truncate tracking-[-0.01em]">{d.name}</span>
             </div>
           </div>
         ))}
@@ -676,8 +686,8 @@ function DayView({ date, doctors, appointments, getAppointmentColor, onAppointme
       {/* Time grid */}
       <div className="relative">
         {HOURS.map((hour) => (
-          <div key={hour} className="grid border-b border-border/30" style={{ gridTemplateColumns: `60px repeat(${doctors.length}, 1fr)`, height: HOUR_HEIGHT }}>
-            <div className="text-xs text-muted-foreground text-right pr-2 pt-1 border-r border-border">
+          <div key={hour} className="grid border-b border-border" style={{ gridTemplateColumns: `60px repeat(${doctors.length}, 1fr)`, height: HOUR_HEIGHT }}>
+            <div className="text-[10.5px] text-subtle text-right pr-2.5 pt-1 border-r border-border num tabular-nums">
               {String(hour).padStart(2, "0")}:00
             </div>
             {doctors.map((d) => {
@@ -685,13 +695,13 @@ function DayView({ date, doctors, appointments, getAppointmentColor, onAppointme
               return (
                 <div
                   key={d.id}
-                  className="relative border-r border-border/30 last:border-r-0 hover:bg-accent/20 transition-colors cursor-pointer"
+                  className="relative border-r border-border last:border-r-0 hover:bg-foreground/[0.025] transition-colors duration-[180ms] cursor-pointer"
                   onDragOver={onDragOver}
                   onDrop={(e) => onDrop(e, hour, d.id, dateStr)}
                   onClick={() => onSlotClick(hour, d.id, date)}
                 >
                   {/* Half-hour line */}
-                  <div className="absolute left-0 right-0 border-t border-border/10" style={{ top: HOUR_HEIGHT / 2 }} />
+                  <div className="absolute left-0 right-0 border-t border-[hsl(0_0%_100%/0.025)]" style={{ top: HOUR_HEIGHT / 2 }} />
                   {dayApps.filter((a) => a.doctor_id === d.id).map((app) => {
                     const startMin = timeToMinutes(app.start_time);
                     const endMin = timeToMinutes(app.end_time);
@@ -709,17 +719,17 @@ function DayView({ date, doctors, appointments, getAppointmentColor, onAppointme
                         draggable
                         onDragStart={(e) => onDragStart(e, app.id, app.start_time)}
                         onClick={(e) => { e.stopPropagation(); onAppointmentClick(app); }}
-                        className="absolute left-0.5 right-0.5 rounded-md px-1.5 py-0.5 overflow-hidden cursor-grab active:cursor-grabbing z-10 hover:ring-2 hover:ring-white/30 transition-shadow"
+                        className="absolute left-1 right-1 rounded-[8px] px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing z-10 transition-all duration-[180ms] hover:brightness-125 hover:shadow-[0_4px_14px_-4px_rgba(0,0,0,0.6)]"
                         style={{
                           top,
                           height,
-                          backgroundColor: color + "22",
-                          borderLeft: `3px solid ${color}`,
+                          backgroundColor: color + "1f",
+                          boxShadow: `inset 2px 0 0 ${color}`,
                         }}
                       >
-                        <p className="text-[11px] font-semibold truncate" style={{ color }}>{app.start_time.slice(0, 5)} – {app.end_time.slice(0, 5)}</p>
-                        <p className="text-[10px] truncate text-foreground/80">{app.patients?.name || app.title}</p>
-                        {app.procedures?.name && <p className="text-[9px] truncate text-muted-foreground">{app.procedures.name}</p>}
+                        <p className="text-[10.5px] font-medium truncate num" style={{ color }}>{app.start_time.slice(0, 5)} – {app.end_time.slice(0, 5)}</p>
+                        <p className="text-[11.5px] truncate text-foreground/90 font-medium leading-tight">{app.patients?.name || app.title}</p>
+                        {app.procedures?.name && <p className="text-[10px] truncate text-subtle leading-tight">{app.procedures.name}</p>}
                       </div>
                     );
                   })}
@@ -749,19 +759,19 @@ function WeekView({ days, doctors, appointments, getAppointmentColor, onAppointm
   return (
     <div className="min-w-[800px]">
       {/* Day headers */}
-      <div className="grid border-b border-border sticky top-0 bg-background z-10" style={{ gridTemplateColumns: `60px repeat(${days.length}, 1fr)` }}>
-        <div className="p-2 text-xs text-muted-foreground border-r border-border" />
+      <div className="grid border-b border-border sticky top-0 bg-surface/90 backdrop-blur-sm z-10" style={{ gridTemplateColumns: `60px repeat(${days.length}, 1fr)` }}>
+        <div className="p-2.5 border-r border-border" />
         {days.map((day) => (
-          <div key={day.toISOString()} className={cn("p-2 text-center border-r border-border last:border-r-0", isSameDay(day, new Date()) && "bg-primary/5")}>
-            <p className="text-xs text-muted-foreground capitalize">{format(day, "EEE", { locale: ptBR })}</p>
-            <p className={cn("text-sm font-semibold", isSameDay(day, new Date()) && "text-primary")}>{format(day, "dd")}</p>
+          <div key={day.toISOString()} className={cn("p-2.5 text-center border-r border-border last:border-r-0", isSameDay(day, new Date()) && "bg-primary/[0.06]")}>
+            <p className="text-[10.5px] uppercase tracking-[0.08em] text-subtle">{format(day, "EEE", { locale: ptBR })}</p>
+            <p className={cn("text-[15px] font-medium num mt-0.5", isSameDay(day, new Date()) && "text-primary")}>{format(day, "dd")}</p>
           </div>
         ))}
       </div>
       {/* Time grid */}
       {HOURS.map((hour) => (
-        <div key={hour} className="grid border-b border-border/30" style={{ gridTemplateColumns: `60px repeat(${days.length}, 1fr)`, minHeight: HOUR_HEIGHT }}>
-          <div className="text-xs text-muted-foreground text-right pr-2 pt-1 border-r border-border">
+        <div key={hour} className="grid border-b border-border" style={{ gridTemplateColumns: `60px repeat(${days.length}, 1fr)`, minHeight: HOUR_HEIGHT }}>
+          <div className="text-[10.5px] text-subtle text-right pr-2.5 pt-1 border-r border-border num tabular-nums">
             {String(hour).padStart(2, "0")}:00
           </div>
           {days.map((day) => {
@@ -770,7 +780,7 @@ function WeekView({ days, doctors, appointments, getAppointmentColor, onAppointm
             return (
               <div
                 key={day.toISOString()}
-                className={cn("border-r border-border/30 last:border-r-0 p-0.5 hover:bg-accent/20 transition-colors cursor-pointer relative", isSameDay(day, new Date()) && "bg-primary/5")}
+                className={cn("border-r border-border last:border-r-0 p-1 hover:bg-foreground/[0.025] transition-colors duration-[180ms] cursor-pointer relative", isSameDay(day, new Date()) && "bg-primary/[0.03]")}
                 onDragOver={onDragOver}
                 onDrop={(e) => onDrop(e, hour, hourApps[0]?.doctor_id || doctors[0]?.id, dateStr)}
                 onClick={() => onSlotClick(hour, doctors[0]?.id || "", day)}
@@ -783,15 +793,15 @@ function WeekView({ days, doctors, appointments, getAppointmentColor, onAppointm
                       draggable
                       onDragStart={(e) => onDragStart(e, app.id, app.start_time)}
                       onClick={(e) => { e.stopPropagation(); onAppointmentClick(app); }}
-                      className="w-full rounded-md px-1.5 py-0.5 mb-0.5 text-xs cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-white/30 transition-shadow"
+                      className="w-full rounded-[8px] px-2 py-1 mb-1 text-xs cursor-grab active:cursor-grabbing transition-all duration-[180ms] hover:brightness-125"
                       style={{
-                        backgroundColor: color + "22",
-                        borderLeft: `3px solid ${color}`,
+                        backgroundColor: color + "1f",
+                        boxShadow: `inset 2px 0 0 ${color}`,
                       }}
                     >
                       <div className="flex items-center gap-1">
-                        <span className="font-semibold" style={{ color }}>{app.start_time.slice(0, 5)}</span>
-                        <span className="truncate text-foreground/80">{app.patients?.name || app.title}</span>
+                        <span className="font-medium num text-[10.5px]" style={{ color }}>{app.start_time.slice(0, 5)}</span>
+                        <span className="truncate text-foreground/90 text-[11.5px]">{app.patients?.name || app.title}</span>
                       </div>
                     </div>
                   );

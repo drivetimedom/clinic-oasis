@@ -115,7 +115,7 @@ export default function Waitlist() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-2xl font-bold">Lista de Espera</h1>
+        <h1 className="page-title">Lista de Espera</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Adicionar</Button></DialogTrigger>
           <DialogContent>

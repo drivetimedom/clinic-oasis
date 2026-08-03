@@ -46,7 +46,7 @@ export default function PatientProfile() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate("/patients")}><ArrowLeft className="h-5 w-5" /></Button>
-        <h1 className="text-2xl font-bold">Ficha do Paciente</h1>
+        <h1 className="page-title">Ficha do Paciente</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

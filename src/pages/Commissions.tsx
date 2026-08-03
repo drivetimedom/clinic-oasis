@@ -49,7 +49,7 @@ export default function Commissions() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Comissões</h1>
+      <h1 className="page-title">Comissões</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Comissões Pendentes</p><p className="text-2xl font-bold text-warning">{formatCurrency(totalPending)}</p></CardContent></Card>

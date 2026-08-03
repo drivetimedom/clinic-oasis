@@ -170,7 +170,7 @@ export default function AdminClinics() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Gestão de Clínicas</h1>
+          <h1 className="page-title">Gestão de Clínicas</h1>
           <p className="text-muted-foreground text-sm">{clinics.length} clínicas cadastradas</p>
         </div>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>

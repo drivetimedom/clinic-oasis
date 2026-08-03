@@ -99,7 +99,7 @@ export default function AcquisitionMetrics() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Métricas de Captação</h1>
+          <h1 className="page-title">Métricas de Captação</h1>
           <p className="text-muted-foreground">Registre e analise a origem dos pacientes</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -151,7 +151,7 @@ export default function AcquisitionMetrics() {
             <CardTitle className="text-sm font-medium">Total de Registros</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sources.length}</div>
+            <div className="num text-[26px] font-semibold tracking-[-0.03em]">{sources.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -159,7 +159,7 @@ export default function AcquisitionMetrics() {
             <CardTitle className="text-sm font-medium">Canal Mais Efetivo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{topChannel?.name || "—"}</div>
+            <div className="num text-[26px] font-semibold tracking-[-0.03em]">{topChannel?.name || "—"}</div>
             {topChannel && <p className="text-sm text-muted-foreground">{topChannel.value} pacientes</p>}
           </CardContent>
         </Card>
