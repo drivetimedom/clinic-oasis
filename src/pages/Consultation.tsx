@@ -15,7 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Plus, User, Phone, Calendar, FileText, Stethoscope, Camera, FileSignature } from "lucide-react";
-import { format, differenceInYears } from "date-fns";
+import { differenceInYears } from "date-fns";
+import { safeFormat } from "@/lib/format";
 import { ptBR } from "date-fns/locale";
 
 export default function Consultation() {
@@ -232,7 +233,7 @@ export default function Consultation() {
               {patient.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{patient.phone}</span>}
               {lastAppointment && (
                 <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />Último: {format(new Date(lastAppointment.appointment_date + "T12:00:00"), "dd/MM/yyyy")}
+                  <Calendar className="h-3 w-3" />Último: {safeFormat(lastAppointment.appointment_date ? lastAppointment.appointment_date + "T12:00:00" : null, "dd/MM/yyyy")}
                 </span>
               )}
             </div>
@@ -281,7 +282,7 @@ export default function Consultation() {
                 <Card key={e.id}>
                   <CardContent className="py-3 space-y-1">
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{format(new Date(e.evolution_date + "T12:00:00"), "dd/MM/yyyy")}</span>
+                      <span>{safeFormat(e.evolution_date ? e.evolution_date + "T12:00:00" : null, "dd/MM/yyyy")}</span>
                       <span>{e.doctors?.name || "—"}</span>
                     </div>
                     <p className="text-sm whitespace-pre-wrap">{e.description}</p>
@@ -301,7 +302,7 @@ export default function Consultation() {
                 <Card key={a.id}>
                   <CardContent className="py-3 space-y-2">
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{format(new Date(a.assessment_date + "T12:00:00"), "dd/MM/yyyy")}</span>
+                      <span>{safeFormat(a.assessment_date ? a.assessment_date + "T12:00:00" : null, "dd/MM/yyyy")}</span>
                       <span>{a.doctors?.name || "—"}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
@@ -364,7 +365,7 @@ export default function Consultation() {
                   <CardContent className="py-3 space-y-1">
                     <div className="flex justify-between">
                       <span className="font-medium text-sm">{p.procedures?.name || "Procedimento"}</span>
-                      <span className="text-xs text-muted-foreground">{format(new Date(p.procedure_date + "T12:00:00"), "dd/MM/yyyy")}</span>
+                      <span className="text-xs text-muted-foreground">{safeFormat(p.procedure_date ? p.procedure_date + "T12:00:00" : null, "dd/MM/yyyy")}</span>
                     </div>
                     <div className="text-xs text-muted-foreground space-y-0.5">
                       {p.protocols?.name && <div>Protocolo: {p.protocols.name}</div>}
@@ -390,7 +391,7 @@ export default function Consultation() {
                   <img src={p.photo_url} alt="Foto clínica" className="w-full h-40 object-cover" />
                   <CardContent className="py-2 space-y-0.5">
                     <Badge variant="outline" className="text-[10px]">{PHOTO_TYPE_LABELS[p.photo_type] || p.photo_type}</Badge>
-                    <p className="text-xs text-muted-foreground">{format(new Date(p.photo_date + "T12:00:00"), "dd/MM/yyyy")}</p>
+                    <p className="text-xs text-muted-foreground">{safeFormat(p.photo_date ? p.photo_date + "T12:00:00" : null, "dd/MM/yyyy")}</p>
                     {p.observation && <p className="text-xs">{p.observation}</p>}
                   </CardContent>
                 </Card>
@@ -428,7 +429,7 @@ export default function Consultation() {
                   <CardContent className="py-3 flex justify-between items-center">
                     <div>
                       <p className="text-sm font-medium">{c.consent_templates?.title || "Termo"}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(c.created_at), "dd/MM/yyyy HH:mm")}</p>
+                      <p className="text-xs text-muted-foreground">{safeFormat(c.created_at, "dd/MM/yyyy HH:mm")}</p>
                     </div>
                     <Badge variant={c.status === "signed" ? "default" : "outline"}>
                       {CONSENT_STATUS[c.status] || c.status}

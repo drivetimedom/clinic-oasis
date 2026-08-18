@@ -1,3 +1,5 @@
+import { format as dfFormat } from "date-fns";
+
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
@@ -35,4 +37,16 @@ export function getRecurrenceLabel(type: string | null): string {
     annual: "Anual",
   };
   return labels[type] || type;
+}
+
+/** Safely formats a date value with date-fns; returns fallback for invalid/missing values. */
+export function safeFormat(
+  value: string | number | Date | null | undefined,
+  pattern: string,
+  fallback = "—"
+): string {
+  if (value === null || value === undefined || value === "") return fallback;
+  const date = value instanceof Date ? value : new Date(value);
+  if (isNaN(date.getTime())) return fallback;
+  return dfFormat(date, pattern);
 }
