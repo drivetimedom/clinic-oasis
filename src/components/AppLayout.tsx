@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Building2, LogOut, Settings, Shield, Bell, Sun, Moon, Stethoscope } from "lucide-react";
+import { Building2, LogOut, Settings, Shield, Bell, Sun, Moon, Stethoscope, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, type AppRole } from "@/lib/permissions";
 import { GlobalSearch } from "@/components/GlobalSearch";
@@ -118,6 +118,13 @@ export function AppLayout() {
             </div>
 
             <div className="flex items-center gap-1">
+              <Button asChild variant="ghost" size="sm" className="gap-1.5 text-primary hover:text-primary hover:bg-primary/10" title="Ir para o CRM / WhatsApp (Donna)">
+                <a href="https://donna.timedom.com.br">
+                  <MessageSquare className="h-[15px] w-[15px]" />
+                  <span className="hidden lg:inline text-[12.5px]">WhatsApp / CRM</span>
+                </a>
+              </Button>
+              <div className="h-5 w-px bg-border mx-1 hidden lg:block" />
               {!isAttendanceMode && (
                 <Button variant="ghost" size="sm" className="gap-1.5" onClick={toggleAttendanceMode}>
                   <Stethoscope className="h-[15px] w-[15px]" />
